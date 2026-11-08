@@ -11,6 +11,7 @@ const std = @import("std");
 const Allocator = std.mem.Allocator;
 const Ast = @import("Ast.zig");
 const scan = @import("scan.zig");
+const inlines = @import("inline.zig");
 const Index = Ast.Index;
 const isSpaceOrTab = scan.isSpaceOrTab;
 
@@ -26,11 +27,26 @@ pub fn parse(arena: Allocator, source: []const u8) Allocator.Error!Ast {
         try p.incorporateLine(line);
     }
     while (p.open.items.len > 0) try p.finalize();
+
+    // Inlines come second, once every link reference definition is known.
+    const context: inlines.Context = .{
+        .arena = arena,
+        .nodes = &p.nodes,
+        .extra = &p.extra,
+        .text = &p.text,
+        .links = &p.links,
+    };
+    for (p.text_blocks.items) |block| {
+        const children = try inlines.parse(context, block.content);
+        p.nodes.items(.data)[block.node].parent.children = children;
+    }
+
     return .{
         .nodes = p.nodes.toOwnedSlice(),
         .extra = p.extra.items,
         .text = p.text.items,
         .lists = p.lists.items,
+        .links = p.links.items,
         .definitions = p.definitions.items,
     };
 }
@@ -86,7 +102,10 @@ const Parser = struct {
     extra: std.ArrayList(Index) = .empty,
     text: std.ArrayList(u8) = .empty,
     lists: std.ArrayList(Ast.List) = .empty,
+    links: std.ArrayList(Ast.Link) = .empty,
     definitions: std.ArrayList(Ast.Definition) = .empty,
+    /// Paragraphs and headings with their raw content, for the inline pass.
+    text_blocks: std.ArrayList(struct { node: Index, content: Ast.Range }) = .empty,
     /// The open blocks, the document first and the tip last.
     open: std.ArrayList(Open) = .empty,
     /// The children of open blocks so far, each block's after its parent's.
@@ -106,7 +125,7 @@ const Parser = struct {
     last_matched: usize = 0,
 
     fn begin(p: *Parser) !void {
-        try p.nodes.append(p.arena, .{ .tag = .document, .data = .{ .container = .{} } });
+        try p.nodes.append(p.arena, .{ .tag = .document, .data = .{ .parent = .{} } });
         try p.blank_end.append(p.arena, false);
         try p.open.append(p.arena, .{ .node = 0, .tag = .document, .children_start = 0, .content_start = 0, .start_line = 0 });
     }
@@ -251,6 +270,7 @@ const Parser = struct {
                 }
                 return .matched;
             },
+            else => unreachable,
         }
     }
 
@@ -482,7 +502,12 @@ const Parser = struct {
         const node: Index = @intCast(p.nodes.len);
         try p.nodes.append(p.arena, .{
             .tag = tag,
-            .data = if (tag.isContainer()) .{ .container = .{} } else .{ .leaf = .{} },
+            .data = switch (tag) {
+                .code_block => .{ .code = .{} },
+                .html_block => .{ .literal = .{} },
+                .thematic_break => .{ .none = {} },
+                else => .{ .parent = .{} },
+            },
         });
         try p.blank_end.append(p.arena, false);
         try p.children.append(p.arena, node);
@@ -507,7 +532,7 @@ const Parser = struct {
                 const start: u32 = @intCast(p.extra.items.len);
                 try p.extra.appendSlice(p.arena, kids);
                 p.children.shrinkRetainingCapacity(o.children_start);
-                data.* = .{ .container = .{ .children = .{ .start = start, .len = @intCast(kids.len) }, .list = o.list } };
+                data.* = .{ .parent = .{ .children = .{ .start = start, .len = @intCast(kids.len) }, .index = o.list } };
                 if (o.tag == .list) p.lists.items[o.list].tight = p.isTight(o.node);
             },
             .paragraph => {
@@ -519,16 +544,20 @@ const Parser = struct {
                     _ = p.children.pop();
                     return;
                 }
-                data.* = .{ .leaf = .{ .content = content } };
+                data.* = .{ .parent = .{} };
+                try p.text_blocks.append(p.arena, .{ .node = o.node, .content = content });
             },
-            .heading => data.* = .{ .leaf = .{ .content = p.trimmed(o.content_start, end), .level = o.level } },
-            .thematic_break => data.* = .{ .leaf = .{} },
+            .heading => {
+                data.* = .{ .parent = .{ .index = o.level } };
+                try p.text_blocks.append(p.arena, .{ .node = o.node, .content = p.trimmed(o.content_start, end) });
+            },
+            .thematic_break => data.* = .{ .none = {} },
             .code_block => {
                 if (o.fenced) {
                     // The opening line holds the info string.
                     const text = p.text.items[o.content_start..end];
                     const newline: u32 = @intCast(std.mem.indexOfScalar(u8, text, '\n').?);
-                    data.* = .{ .leaf = .{
+                    data.* = .{ .code = .{
                         .content = .{ .start = o.content_start + newline + 1, .len = @intCast(text.len - newline - 1) },
                         .info = p.trimmed(o.content_start, o.content_start + newline),
                         .fenced = true,
@@ -542,7 +571,7 @@ const Parser = struct {
                         if (!scan.isBlank(p.text.items[line_start .. stop - 1])) break;
                         stop = line_start;
                     }
-                    data.* = .{ .leaf = .{ .content = .{ .start = o.content_start, .len = stop - o.content_start } } };
+                    data.* = .{ .code = .{ .content = .{ .start = o.content_start, .len = stop - o.content_start } } };
                 }
             },
             .html_block => {
@@ -553,8 +582,9 @@ const Parser = struct {
                     while (k > o.content_start and p.text.items[k - 1] == ' ') k -= 1;
                     if (k > o.content_start and p.text.items[k - 1] == '\n') stop = k - 1 else break;
                 }
-                data.* = .{ .leaf = .{ .content = .{ .start = o.content_start, .len = stop - o.content_start } } };
+                data.* = .{ .literal = .{ .start = o.content_start, .len = stop - o.content_start } };
             },
+            else => unreachable,
         }
     }
 
@@ -567,7 +597,7 @@ const Parser = struct {
     }
 
     fn childrenOf(p: *const Parser, node: Index) []const Index {
-        return p.nodes.items(.data)[node].container.children.of(Index, p.extra.items);
+        return p.nodes.items(.data)[node].parent.children.of(Index, p.extra.items);
     }
 
     fn endsWithBlankLine(p: *const Parser, node: Index) bool {
@@ -716,7 +746,7 @@ test "a paragraph of definitions disappears" {
     try testing.expectEqualStrings("x y", ast.string(ast.definitions[1].destination));
     const kids = ast.children(0);
     try testing.expectEqual(1, kids.len);
-    try testing.expectEqualStrings("text", ast.content(kids[0]));
+    try testing.expectEqualStrings("text", ast.content(ast.children(kids[0])[0]));
 }
 
 test "tight and loose lists" {

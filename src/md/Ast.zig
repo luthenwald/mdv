@@ -1,10 +1,10 @@
 //! The syntax tree of a markdown document, data-oriented after `std.zig.Ast`.
 //!
-//! Nodes live in a `MultiArrayList`; the document is node 0. A container's
-//! children are a contiguous run of node indices in `extra`. The content of
-//! leaf blocks is copied into one `text` buffer, so each leaf's content is a
-//! single string even when its source lines were interleaved with block quote
-//! markers or indentation.
+//! Blocks and inlines are nodes in one `MultiArrayList`; the document is
+//! node 0. A node's children are a contiguous run of node indices in `extra`.
+//! All text lives in one `text` buffer, already decoded: escapes and
+//! character references are resolved while parsing, so a text node's string
+//! is what a reader sees.
 
 const std = @import("std");
 const Ast = @This();
@@ -13,6 +13,7 @@ nodes: std.MultiArrayList(Node).Slice,
 extra: []const Index,
 text: []const u8,
 lists: []const List,
+links: []const Link,
 definitions: []const Definition,
 
 pub const Index = u32;
@@ -31,6 +32,7 @@ pub const Node = struct {
     data: Data,
 
     pub const Tag = enum(u8) {
+        // Blocks.
         document,
         block_quote,
         list,
@@ -40,7 +42,26 @@ pub const Node = struct {
         thematic_break,
         code_block,
         html_block,
+        // Inlines, inside paragraphs and headings.
+        text,
+        soft_break,
+        hard_break,
+        code_span,
+        html_inline,
+        emphasis,
+        strong,
+        link,
+        image,
 
+        pub fn hasChildren(t: Tag) bool {
+            return switch (t) {
+                .document, .block_quote, .list, .list_item, .paragraph, .heading => true,
+                .emphasis, .strong, .link, .image => true,
+                else => false,
+            };
+        }
+
+        /// Holds blocks rather than inlines.
         pub fn isContainer(t: Tag) bool {
             return switch (t) {
                 .document, .block_quote, .list, .list_item => true,
@@ -51,25 +72,30 @@ pub const Node = struct {
 
     /// Which field is live follows from `tag`.
     pub const Data = union {
-        container: Container,
-        leaf: Leaf,
+        /// Every tag with children.
+        parent: Parent,
+        /// `code_block`.
+        code: Code,
+        /// In `text`: `html_block`, `text`, `code_span` and `html_inline`.
+        literal: Range,
+        /// `thematic_break`, `soft_break` and `hard_break`.
+        none: void,
     };
 
-    pub const Container = struct {
+    pub const Parent = struct {
         /// Node indices in `extra`.
         children: Range = .{},
-        /// For a list, its index in `lists`.
-        list: u32 = 0,
+        /// A list's index in `lists`, a heading's level (1 to 6), or a link's
+        /// or image's index in `links`.
+        index: u32 = 0,
     };
 
-    pub const Leaf = struct {
-        /// In `text`. Paragraphs and headings are trimmed; code keeps its final newline.
+    pub const Code = struct {
+        /// In `text`, with its final line ending.
         content: Range = .{},
-        /// In `text`: the info string of a fenced code block, trimmed.
+        /// In `text`: the info string of a fenced code block, trimmed and decoded.
         info: Range = .{},
-        /// 1 to 6 for headings.
-        level: u8 = 0,
-        /// For code blocks: fenced rather than indented.
+        /// Fenced rather than indented.
         fenced: bool = false,
     };
 };
@@ -81,6 +107,12 @@ pub const List = struct {
     marker: u8,
     /// The first number of an ordered list.
     start: u32 = 1,
+};
+
+/// Where a link or image goes, decoded. An empty title is no title.
+pub const Link = struct {
+    destination: Range = .{},
+    title: Range = .{},
 };
 
 /// A link reference definition, as written: the label without its brackets,
@@ -96,30 +128,50 @@ pub fn tag(ast: Ast, node: Index) Node.Tag {
     return ast.nodes.items(.tag)[node];
 }
 
+fn data(ast: Ast, node: Index) Node.Data {
+    return ast.nodes.items(.data)[node];
+}
+
 pub fn children(ast: Ast, node: Index) []const Index {
-    std.debug.assert(ast.tag(node).isContainer());
-    return ast.nodes.items(.data)[node].container.children.of(Index, ast.extra);
+    std.debug.assert(ast.tag(node).hasChildren());
+    return ast.data(node).parent.children.of(Index, ast.extra);
 }
 
-pub fn leaf(ast: Ast, node: Index) Node.Leaf {
-    std.debug.assert(!ast.tag(node).isContainer());
-    return ast.nodes.items(.data)[node].leaf;
-}
-
+/// The text of a literal node, or the content of a code block.
 pub fn content(ast: Ast, node: Index) []const u8 {
-    return ast.leaf(node).content.of(u8, ast.text);
+    const range = switch (ast.tag(node)) {
+        .code_block => ast.data(node).code.content,
+        .html_block, .text, .code_span, .html_inline => ast.data(node).literal,
+        else => unreachable,
+    };
+    return range.of(u8, ast.text);
+}
+
+pub fn code(ast: Ast, node: Index) Node.Code {
+    std.debug.assert(ast.tag(node) == .code_block);
+    return ast.data(node).code;
 }
 
 pub fn info(ast: Ast, node: Index) []const u8 {
-    return ast.leaf(node).info.of(u8, ast.text);
+    return ast.code(node).info.of(u8, ast.text);
+}
+
+pub fn level(ast: Ast, node: Index) u8 {
+    std.debug.assert(ast.tag(node) == .heading);
+    return @intCast(ast.data(node).parent.index);
 }
 
 pub fn list(ast: Ast, node: Index) List {
     std.debug.assert(ast.tag(node) == .list);
-    return ast.lists[ast.nodes.items(.data)[node].container.list];
+    return ast.lists[ast.data(node).parent.index];
 }
 
-/// The text of a definition's label, destination or title.
+pub fn link(ast: Ast, node: Index) Link {
+    std.debug.assert(ast.tag(node) == .link or ast.tag(node) == .image);
+    return ast.links[ast.data(node).parent.index];
+}
+
+/// The text of a range, such as a link's destination or a definition's label.
 pub fn string(ast: Ast, r: Range) []const u8 {
     return r.of(u8, ast.text);
 }

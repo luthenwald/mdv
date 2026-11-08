@@ -82,21 +82,21 @@ const Renderer = struct {
                 try r.cr();
             },
             .paragraph => {
-                if (tight) return r.inlines(ast.content(n));
+                if (tight) return r.inlines(n);
                 try r.cr();
                 try r.lit("<p>");
-                try r.inlines(ast.content(n));
+                try r.inlines(n);
                 try r.lit("</p>");
                 try r.cr();
             },
             .heading => {
                 var open: [4]u8 = "<h0>".*;
                 var close: [5]u8 = "</h0>".*;
-                open[2] = '0' + ast.leaf(n).level;
+                open[2] = '0' + ast.level(n);
                 close[3] = open[2];
                 try r.cr();
                 try r.lit(&open);
-                try r.inlines(ast.content(n));
+                try r.inlines(n);
                 try r.lit(&close);
                 try r.cr();
             },
@@ -125,18 +125,82 @@ const Renderer = struct {
                 try r.lit(ast.content(n));
                 try r.cr();
             },
+            .text => try r.esc(ast.content(n)),
+            .soft_break => try r.lit("\n"),
+            .hard_break => try r.lit("<br />\n"),
+            .code_span => {
+                try r.lit("<code>");
+                try r.esc(ast.content(n));
+                try r.lit("</code>");
+            },
+            .html_inline => try r.lit(ast.content(n)),
+            .emphasis => try r.wrap(n, "<em>", "</em>"),
+            .strong => try r.wrap(n, "<strong>", "</strong>"),
+            .link => {
+                const link = ast.link(n);
+                try r.lit("<a href=\"");
+                try r.url(ast.string(link.destination));
+                try r.lit("\"");
+                try r.title(ast.string(link.title));
+                try r.lit(">");
+                try r.inlines(n);
+                try r.lit("</a>");
+            },
+            .image => {
+                const link = ast.link(n);
+                try r.lit("<img src=\"");
+                try r.url(ast.string(link.destination));
+                try r.lit("\" alt=\"");
+                try r.plain(n);
+                try r.lit("\"");
+                try r.title(ast.string(link.title));
+                try r.lit(" />");
+            },
         }
     }
 
-    /// Inline content. Until the inline parser exists, the text is escaped as
-    /// it is, with the spaces around line endings dropped as soft breaks do.
-    fn inlines(r: *Renderer, s: []const u8) !void {
-        var lines = std.mem.splitScalar(u8, s, '\n');
-        var first = true;
-        while (lines.next()) |line| {
-            if (!first) try r.lit("\n");
-            first = false;
-            try r.esc(std.mem.trim(u8, line, " "));
+    fn inlines(r: *Renderer, n: Ast.Index) std.Io.Writer.Error!void {
+        for (r.ast.children(n)) |child| try r.node(child, false);
+    }
+
+    fn wrap(r: *Renderer, n: Ast.Index, open: []const u8, close: []const u8) !void {
+        try r.lit(open);
+        try r.inlines(n);
+        try r.lit(close);
+    }
+
+    fn title(r: *Renderer, s: []const u8) !void {
+        if (s.len == 0) return;
+        try r.lit(" title=\"");
+        try r.esc(s);
+        try r.lit("\"");
+    }
+
+    /// The text of an image's description, for its `alt`, without markup.
+    fn plain(r: *Renderer, n: Ast.Index) std.Io.Writer.Error!void {
+        for (r.ast.children(n)) |child| switch (r.ast.tag(child)) {
+            .text, .code_span => try r.esc(r.ast.content(child)),
+            .soft_break, .hard_break => try r.lit("\n"),
+            .html_inline => {},
+            else => try r.plain(child),
+        };
+    }
+
+    /// A destination as an attribute: bytes outside the characters URLs
+    /// allow are percent-encoded, existing `%XX` escapes are kept, and HTML
+    /// specials are escaped, as commonmark.js does it with mdurl.
+    fn url(r: *Renderer, s: []const u8) !void {
+        const hex = "0123456789ABCDEF";
+        for (s, 0..) |c, i| {
+            if (c == '%' and i + 2 < s.len and std.ascii.isHex(s[i + 1]) and std.ascii.isHex(s[i + 2])) {
+                try r.lit("%");
+            } else if (c == '&') {
+                try r.lit("&amp;");
+            } else if (std.ascii.isAlphanumeric(c) or std.mem.indexOfScalar(u8, ";/?:@=+$,-_.!~*'()#", c) != null) {
+                try r.lit(&.{c});
+            } else {
+                try r.lit(&.{ '%', hex[c >> 4], hex[c & 15] });
+            }
         }
     }
 };
