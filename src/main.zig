@@ -4,6 +4,8 @@
 const std = @import("std");
 const build_options = @import("build_options");
 const cli = @import("cli.zig");
+const emit = @import("term/emit.zig");
+const tty = @import("term/tty.zig");
 
 pub fn main(init: std.process.Init) !u8 {
     const io = init.io;
@@ -40,7 +42,17 @@ pub fn main(init: std.process.Init) !u8 {
     const inputs = try readInputs(io, arena, options.files, err);
     try err.flush();
 
-    for (inputs.texts) |input| try out.writeAll(input.text);
+    const terminal = tty.decide(options, try tty.gather(io, init.environ_map));
+    const emitter: emit.Emitter = .{ .styled = terminal.styled, .colors = terminal.colors };
+
+    for (inputs.texts, 0..) |input, i| {
+        // Every file after the first starts after a blank line with its name in dim.
+        if (i > 0) {
+            try out.writeByte('\n');
+            try emitter.line(out, &.{.{ .text = input.name, .style = .{ .dim = true } }});
+        }
+        try out.writeAll(input.text);
+    }
     try out.flush();
     return if (inputs.failed) 1 else 0;
 }
@@ -104,4 +116,6 @@ fn describe(e: anyerror) []const u8 {
 
 test {
     _ = cli;
+    _ = emit;
+    _ = tty;
 }
