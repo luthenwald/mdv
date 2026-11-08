@@ -1,5 +1,5 @@
-//! Spans to bytes: SGR attributes and the sixteen palette colors, nothing else.
-//! Knows nothing about markdown.
+//! Spans to bytes: SGR attributes, the sixteen palette colors and OSC 8
+//! hyperlinks, nothing else. Knows nothing about markdown.
 
 const std = @import("std");
 
@@ -45,6 +45,8 @@ pub const Style = packed struct {
 pub const Span = struct {
     text: []const u8,
     style: Style = .plain,
+    /// The target of a hyperlink around the text.
+    link: ?[]const u8 = null,
 };
 
 pub const Emitter = struct {
@@ -54,11 +56,18 @@ pub const Emitter = struct {
     colors: bool,
 
     /// Writes one output line and its newline. A style change is a full reset
-    /// followed by the whole new style, and a styled line ends with a reset,
-    /// so nothing bleeds into the next line through `head` or a pager.
+    /// followed by the whole new style, and a styled line ends with a reset
+    /// and closes its hyperlink, so nothing bleeds into the next line through
+    /// `head` or a pager.
     pub fn line(e: Emitter, w: *std.Io.Writer, spans: []const Span) std.Io.Writer.Error!void {
         var current: Style = .plain;
+        var link: ?[]const u8 = null;
         for (spans) |span| {
+            if (e.styled and !sameLink(span.link, link)) {
+                if (link != null) try w.writeAll(link_close);
+                if (span.link) |url| try openLink(w, url);
+                link = span.link;
+            }
             if (e.styled) {
                 var style = span.style;
                 if (!e.colors) style.fg = .default;
@@ -70,12 +79,29 @@ pub const Emitter = struct {
             }
             try w.writeAll(span.text);
         }
+        if (link != null) try w.writeAll(link_close);
         if (current != Style.plain) try w.writeAll(reset);
         try w.writeByte('\n');
     }
 };
 
 const reset = "\x1b[0m";
+const link_close = "\x1b]8;;\x1b\\";
+
+fn sameLink(a: ?[]const u8, b: ?[]const u8) bool {
+    if (a == null or b == null) return a == null and b == null;
+    return std.mem.eql(u8, a.?, b.?);
+}
+
+/// Opens a hyperlink. Only printable ASCII may appear in the sequence, so
+/// other bytes are percent-encoded.
+fn openLink(w: *std.Io.Writer, url: []const u8) std.Io.Writer.Error!void {
+    try w.writeAll("\x1b]8;;");
+    for (url) |c| {
+        if (c > ' ' and c < 0x7f) try w.writeByte(c) else try w.print("%{X:0>2}", .{c});
+    }
+    try w.writeAll("\x1b\\");
+}
 
 /// The SGR sequence that sets `style` from a reset state.
 fn sgr(w: *std.Io.Writer, style: Style) std.Io.Writer.Error!void {
@@ -146,4 +172,18 @@ test "a color alone becomes nothing without colors" {
 test "unstyled output is the text alone" {
     const spans = [_]Span{ .{ .text = "a", .style = .{ .bold = true } }, .{ .text = "b" } };
     try expectLine("ab\n", .{ .styled = false, .colors = false }, &spans);
+}
+
+test "a hyperlink opens where it starts and closes before the reset" {
+    const spans = [_]Span{
+        .{ .text = "see " },
+        .{ .text = "spec", .style = .{ .underline = true }, .link = "https://x.org/a b" },
+        .{ .text = "!", .link = "https://x.org/a b" },
+    };
+    try expectLine("see \x1b]8;;https://x.org/a%20b\x1b\\\x1b[4mspec\x1b[0m!\x1b]8;;\x1b\\\n", styled, &spans);
+}
+
+test "unstyled output sends no hyperlinks" {
+    const spans = [_]Span{.{ .text = "spec", .link = "https://x.org" }};
+    try expectLine("spec\n", .{ .styled = false, .colors = false }, &spans);
 }
