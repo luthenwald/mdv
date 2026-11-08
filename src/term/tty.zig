@@ -86,15 +86,15 @@ test "at a terminal: styled, paged, capped at 80" {
 
 test "into a pipe: plain, not paged, COLUMNS then 80" {
     try testing.expectEqual(Terminal{ .width = 50, .styled = false, .colors = false, .page = false }, decide(.{}, .{ .stdout_is_tty = false, .columns = 50 }));
-    try testing.expectEqual(@as(u16, 80), decide(.{}, .{ .stdout_is_tty = false }).width);
+    try testing.expectEqual(80, decide(.{}, .{ .stdout_is_tty = false }).width);
 }
 
 test "a narrow terminal wins over COLUMNS" {
-    try testing.expectEqual(@as(u16, 60), decide(.{}, .{ .stdout_is_tty = true, .measured = 60, .columns = 200 }).width);
+    try testing.expectEqual(60, decide(.{}, .{ .stdout_is_tty = true, .measured = 60, .columns = 200 }).width);
 }
 
 test "an explicit width lifts the cap" {
-    try testing.expectEqual(@as(u16, 120), decide(.{ .width = 120 }, .{ .stdout_is_tty = true, .measured = 100 }).width);
+    try testing.expectEqual(120, decide(.{ .width = 120 }, .{ .stdout_is_tty = true, .measured = 100 }).width);
 }
 
 test "NO_COLOR keeps attributes and drops colors" {

@@ -66,8 +66,8 @@ const Renderer = struct {
                 } else if (list.start == 1) {
                     try r.lit("<ol>");
                 } else {
-                    var buf: [32]u8 = undefined;
-                    try r.lit(std.fmt.bufPrint(&buf, "<ol start=\"{d}\">", .{list.start}) catch unreachable);
+                    try r.w.print("<ol start=\"{d}\">", .{list.start});
+                    r.last = '>';
                 }
                 try r.cr();
                 for (ast.children(n)) |item| try r.node(item, list.tight);

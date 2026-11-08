@@ -143,17 +143,19 @@ fn readInputs(io: std.Io, arena: std.mem.Allocator, names: []const []const u8, e
     return .{ .texts = texts.items, .failed = failed };
 }
 
-fn readStdin(io: std.Io, arena: std.mem.Allocator) ![]u8 {
+const ReadError = std.Io.Dir.ReadFileAllocError;
+
+fn readStdin(io: std.Io, arena: std.mem.Allocator) ReadError![]u8 {
     var buf: [64 * 1024]u8 = undefined;
     var reader = std.Io.File.stdin().readerStreaming(io, &buf);
     return reader.interface.allocRemaining(arena, .unlimited) catch |e| switch (e) {
-        error.ReadFailed => return reader.err orelse error.ReadFailed,
-        else => return e,
+        error.ReadFailed => return reader.err.?,
+        error.OutOfMemory, error.StreamTooLong => |other| return other,
     };
 }
 
 /// The lowercase phrase that follows the file name in an error line.
-fn describe(e: anyerror) []const u8 {
+fn describe(e: ReadError) []const u8 {
     return switch (e) {
         error.FileNotFound => "no such file",
         error.IsDir, error.NotDir => "is a directory",

@@ -376,13 +376,13 @@ test "fences" {
     try testing.expectEqual(Fence{ .char = '`', .len = 4 }, fenceOpener("````zig").?);
     try testing.expect(fenceOpener("``` a`b") == null);
     try testing.expectEqual(Fence{ .char = '~', .len = 3 }, fenceOpener("~~~ a`b").?);
-    try testing.expectEqual(@as(?usize, 5), fenceCloser("`````  ", '`'));
+    try testing.expectEqual(5, fenceCloser("`````  ", '`'));
     try testing.expect(fenceCloser("``` x", '`') == null);
 }
 
 test "setext underlines and list markers" {
-    try testing.expectEqual(@as(?u8, 1), setextUnderline("=== "));
-    try testing.expectEqual(@as(?u8, 2), setextUnderline("-"));
+    try testing.expectEqual(1, setextUnderline("=== "));
+    try testing.expectEqual(2, setextUnderline("-"));
     try testing.expect(setextUnderline("= =") == null);
     try testing.expectEqual(ListMarker{ .ordered = true, .char = ')', .start = 12, .len = 3 }, listMarker("12) a").?);
     try testing.expectEqual(ListMarker{ .ordered = false, .char = '+', .len = 1 }, listMarker("+ a").?);
@@ -390,13 +390,13 @@ test "setext underlines and list markers" {
 }
 
 test "html block kinds" {
-    try testing.expectEqual(@as(?u8, 1), htmlBlockStart("<pre class=\"x\">"));
-    try testing.expectEqual(@as(?u8, 2), htmlBlockStart("<!-- c"));
-    try testing.expectEqual(@as(?u8, 4), htmlBlockStart("<!DOCTYPE html>"));
-    try testing.expectEqual(@as(?u8, 6), htmlBlockStart("<DIV>"));
-    try testing.expectEqual(@as(?u8, 6), htmlBlockStart("</table"));
-    try testing.expectEqual(@as(?u8, 7), htmlBlockStart("<a href=\"foo\">  "));
-    try testing.expectEqual(@as(?u8, 7), htmlBlockStart("</ins>"));
+    try testing.expectEqual(1, htmlBlockStart("<pre class=\"x\">"));
+    try testing.expectEqual(2, htmlBlockStart("<!-- c"));
+    try testing.expectEqual(4, htmlBlockStart("<!DOCTYPE html>"));
+    try testing.expectEqual(6, htmlBlockStart("<DIV>"));
+    try testing.expectEqual(6, htmlBlockStart("</table"));
+    try testing.expectEqual(7, htmlBlockStart("<a href=\"foo\">  "));
+    try testing.expectEqual(7, htmlBlockStart("</ins>"));
     try testing.expect(htmlBlockStart("<a href=\"foo\"> text") == null);
     try testing.expect(htmlBlockStart("<33>") == null);
     try testing.expect(htmlBlockEnd(1, "x </STYLE> y"));
@@ -405,17 +405,17 @@ test "html block kinds" {
 
 test "tags" {
     const full = "<a foo=\"bar\" bam='b'/>";
-    try testing.expectEqual(@as(?usize, full.len), openTag(full, 0));
+    try testing.expectEqual(full.len, openTag(full, 0));
     const lines = "<x data-y=z\n  zz >";
-    try testing.expectEqual(@as(?usize, lines.len), openTag(lines ++ "rest", 0));
+    try testing.expectEqual(lines.len, openTag(lines ++ "rest", 0));
     try testing.expect(openTag("<a  b=>", 0) == null);
     try testing.expect(openTag("<a\"b\">", 0) == null);
-    try testing.expectEqual(@as(?usize, 7), closingTag("</foo >", 0));
+    try testing.expectEqual(7, closingTag("</foo >", 0));
 }
 
 test "link labels, destinations and titles" {
-    try testing.expectEqual(@as(?usize, 5), linkLabel("[foo]: /u", 0));
-    try testing.expectEqual(@as(?usize, 6), linkLabel("[a\\]b]", 0));
+    try testing.expectEqual(5, linkLabel("[foo]: /u", 0));
+    try testing.expectEqual(6, linkLabel("[a\\]b]", 0));
     try testing.expect(linkLabel("[a[b]", 0) == null);
     const d = linkDestination("<a b> x", 0).?;
     try testing.expectEqualStrings("a b", "<a b> x"[d.start..d.end]);

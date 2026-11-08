@@ -72,57 +72,58 @@ pub fn parse(arena: std.mem.Allocator, args: []const []const u8) std.mem.Allocat
         const flag = flags.get(name) orelse
             return .{ .usage = try std.fmt.allocPrint(arena, "unknown option {s}", .{arg}) };
 
-        if (!flag.takes_value) {
-            if (attached != null)
-                return .{ .usage = try std.fmt.allocPrint(arena, "{s} takes no value", .{name}) };
-            switch (flag.id) {
-                .help => return .help,
-                .version => return .version,
-                .no_paging => options.paging = .never,
-                .no_links => options.no_links = true,
-                .ascii => options.ascii = true,
-                else => unreachable,
-            }
-            continue;
-        }
-
-        const value = attached orelse blk: {
-            i += 1;
-            if (i == args.len)
-                return .{ .usage = try std.fmt.allocPrint(arena, "{s} needs a value", .{name}) };
-            break :blk args[i];
-        };
-        switch (flag.id) {
-            .width => options.width = parseWidth(value) orelse
-                return .{ .usage = try std.fmt.allocPrint(arena, "{s}: not a width: {s}", .{ name, value }) },
-            .color, .paging => {
-                const mode = std.meta.stringToEnum(Mode, value) orelse
-                    return .{ .usage = try std.fmt.allocPrint(arena, "{s}: expected auto, always or never, not {s}", .{ name, value }) };
-                if (flag.id == .color) options.color = mode else options.paging = mode;
+        switch (flag) {
+            .toggle => |toggle| {
+                if (attached != null)
+                    return .{ .usage = try std.fmt.allocPrint(arena, "{s} takes no value", .{name}) };
+                switch (toggle) {
+                    .help => return .help,
+                    .version => return .version,
+                    .no_paging => options.paging = .never,
+                    .no_links => options.no_links = true,
+                    .ascii => options.ascii = true,
+                }
             },
-            else => unreachable,
+            .valued => |valued| {
+                const value = attached orelse blk: {
+                    i += 1;
+                    if (i == args.len)
+                        return .{ .usage = try std.fmt.allocPrint(arena, "{s} needs a value", .{name}) };
+                    break :blk args[i];
+                };
+                switch (valued) {
+                    .width => options.width = parseWidth(value) orelse
+                        return .{ .usage = try std.fmt.allocPrint(arena, "{s}: not a width: {s}", .{ name, value }) },
+                    .color, .paging => {
+                        const mode = std.meta.stringToEnum(Mode, value) orelse
+                            return .{ .usage = try std.fmt.allocPrint(arena, "{s}: expected auto, always or never, not {s}", .{ name, value }) };
+                        if (valued == .color) options.color = mode else options.paging = mode;
+                    },
+                }
+            },
         }
     }
     options.files = files.items;
     return .{ .run = options };
 }
 
-const Flag = struct {
-    id: enum { width, color, paging, no_paging, no_links, ascii, help, version },
-    takes_value: bool = false,
+/// An option either stands alone or takes a value.
+const Flag = union(enum) {
+    toggle: enum { no_paging, no_links, ascii, help, version },
+    valued: enum { width, color, paging },
 };
 
 const flags = std.StaticStringMap(Flag).initComptime(.{
-    .{ "-w", Flag{ .id = .width, .takes_value = true } },
-    .{ "--width", Flag{ .id = .width, .takes_value = true } },
-    .{ "--color", Flag{ .id = .color, .takes_value = true } },
-    .{ "--paging", Flag{ .id = .paging, .takes_value = true } },
-    .{ "-P", Flag{ .id = .no_paging } },
-    .{ "--no-links", Flag{ .id = .no_links } },
-    .{ "--ascii", Flag{ .id = .ascii } },
-    .{ "-h", Flag{ .id = .help } },
-    .{ "--help", Flag{ .id = .help } },
-    .{ "--version", Flag{ .id = .version } },
+    .{ "-w", Flag{ .valued = .width } },
+    .{ "--width", Flag{ .valued = .width } },
+    .{ "--color", Flag{ .valued = .color } },
+    .{ "--paging", Flag{ .valued = .paging } },
+    .{ "-P", Flag{ .toggle = .no_paging } },
+    .{ "--no-links", Flag{ .toggle = .no_links } },
+    .{ "--ascii", Flag{ .toggle = .ascii } },
+    .{ "-h", Flag{ .toggle = .help } },
+    .{ "--help", Flag{ .toggle = .help } },
+    .{ "--version", Flag{ .toggle = .version } },
 });
 
 fn parseWidth(text: []const u8) ?u16 {
@@ -136,10 +137,10 @@ test "no arguments reads standard input with defaults" {
     var arena: std.heap.ArenaAllocator = .init(testing.allocator);
     defer arena.deinit();
     const options = (try parse(arena.allocator(), &.{})).run;
-    try testing.expectEqual(@as(?u16, null), options.width);
+    try testing.expectEqual(null, options.width);
     try testing.expectEqual(Mode.auto, options.color);
     try testing.expectEqual(Mode.auto, options.paging);
-    try testing.expectEqual(@as(usize, 0), options.files.len);
+    try testing.expectEqual(0, options.files.len);
 }
 
 test "the width in all four spellings" {
@@ -148,7 +149,7 @@ test "the width in all four spellings" {
     for ([_][]const []const u8{
         &.{ "-w", "40" }, &.{"-w40"}, &.{ "--width", "40" }, &.{"--width=40"},
     }) |args| {
-        try testing.expectEqual(@as(?u16, 40), (try parse(arena.allocator(), args)).run.width);
+        try testing.expectEqual(40, (try parse(arena.allocator(), args)).run.width);
     }
 }
 
@@ -160,7 +161,7 @@ test "modes, flags and files keep their order" {
     try testing.expectEqual(Mode.never, options.color);
     try testing.expectEqual(Mode.never, options.paging);
     try testing.expect(options.ascii and options.no_links);
-    try testing.expectEqual(@as(usize, 3), options.files.len);
+    try testing.expectEqual(3, options.files.len);
     try testing.expectEqualStrings("a.md", options.files[0]);
     try testing.expectEqualStrings("-", options.files[1]);
     try testing.expectEqualStrings("-w", options.files[2]);

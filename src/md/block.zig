@@ -56,7 +56,7 @@ pub fn normalize(arena: Allocator, source: []const u8) Allocator.Error![]const u
 /// An open block and what its continuation needs to know.
 const Open = struct {
     node: Index,
-    tag: Ast.Tag,
+    tag: Ast.Node.Tag,
     /// Where this block's children begin in `Parser.children`.
     children_start: u32,
     /// Where a leaf's content begins in `Parser.text`.
@@ -261,70 +261,75 @@ const Parser = struct {
         const rest = p.line[p.next_nonspace..];
         const container_tag = p.open.items[container].tag;
 
-        if (!p.indented and p.peek(p.next_nonspace) == '>') {
-            p.advanceNextNonspace();
-            p.advanceOffset(1, false);
-            if (isSpaceOrTab(p.peek(p.offset))) p.advanceOffset(1, true);
-            try p.closeUnmatchedBlocks();
-            _ = try p.addChild(.block_quote);
-            return .container;
-        }
-
-        if (!p.indented) if (scan.atxOpener(rest)) |opener| {
-            p.advanceNextNonspace();
-            p.advanceOffset(opener.len, false);
-            try p.closeUnmatchedBlocks();
-            const d = try p.addChild(.heading);
-            p.open.items[d].level = opener.level;
-            try p.text.appendSlice(p.arena, scan.atxContent(p.line[p.offset..]));
-            p.advanceOffset(p.line.len - p.offset, false);
-            return .leaf;
-        };
-
-        if (!p.indented) if (scan.fenceOpener(rest)) |fence| {
-            try p.closeUnmatchedBlocks();
-            const d = try p.addChild(.code_block);
-            p.open.items[d].fenced = true;
-            p.open.items[d].fence = fence;
-            p.open.items[d].fence_offset = p.indent;
-            p.advanceNextNonspace();
-            p.advanceOffset(fence.len, false);
-            return .leaf;
-        };
-
-        if (!p.indented and p.peek(p.next_nonspace) == '<') if (scan.htmlBlockStart(rest)) |kind| {
-            // The seventh kind cannot interrupt a paragraph, not even a lazy one.
-            const lazy = !p.all_closed and !p.blank and p.tip().tag == .paragraph;
-            if (kind < 7 or (container_tag != .paragraph and !lazy)) {
+        if (!p.indented) {
+            if (rest.len > 0 and rest[0] == '>') {
+                p.advanceNextNonspace();
+                p.advanceOffset(1, false);
+                if (isSpaceOrTab(p.peek(p.offset))) p.advanceOffset(1, true);
                 try p.closeUnmatchedBlocks();
-                // The spaces before the tag belong to the block.
-                const d = try p.addChild(.html_block);
-                p.open.items[d].html_kind = kind;
-                return .leaf;
+                _ = try p.addChild(.block_quote);
+                return .container;
             }
-        };
 
-        if (!p.indented and container_tag == .paragraph) if (scan.setextUnderline(rest)) |level| {
-            try p.closeUnmatchedBlocks();
-            const o = p.tip();
-            _ = try p.takeDefinitions(&o.content_start);
-            if (!scan.isBlank(std.mem.trimEnd(u8, p.text.items[o.content_start..], "\n"))) {
-                o.tag = .heading;
-                o.level = level;
-                p.nodes.items(.tag)[o.node] = .heading;
+            if (scan.atxOpener(rest)) |opener| {
+                p.advanceNextNonspace();
+                p.advanceOffset(opener.len, false);
+                try p.closeUnmatchedBlocks();
+                const d = try p.addChild(.heading);
+                p.open.items[d].level = opener.level;
+                try p.text.appendSlice(p.arena, scan.atxContent(p.line[p.offset..]));
                 p.advanceOffset(p.line.len - p.offset, false);
                 return .leaf;
             }
-        };
 
-        if (!p.indented and scan.thematicBreak(rest)) {
-            try p.closeUnmatchedBlocks();
-            _ = try p.addChild(.thematic_break);
-            p.advanceOffset(p.line.len - p.offset, false);
-            return .leaf;
+            if (scan.fenceOpener(rest)) |fence| {
+                try p.closeUnmatchedBlocks();
+                const d = try p.addChild(.code_block);
+                p.open.items[d].fenced = true;
+                p.open.items[d].fence = fence;
+                p.open.items[d].fence_offset = p.indent;
+                p.advanceNextNonspace();
+                p.advanceOffset(fence.len, false);
+                return .leaf;
+            }
+
+            if (scan.htmlBlockStart(rest)) |kind| {
+                // The seventh kind cannot interrupt a paragraph, not even a lazy one.
+                const lazy = !p.all_closed and !p.blank and p.tip().tag == .paragraph;
+                if (kind < 7 or (container_tag != .paragraph and !lazy)) {
+                    try p.closeUnmatchedBlocks();
+                    // The spaces before the tag belong to the block.
+                    const d = try p.addChild(.html_block);
+                    p.open.items[d].html_kind = kind;
+                    return .leaf;
+                }
+            }
+
+            if (container_tag == .paragraph) {
+                if (scan.setextUnderline(rest)) |level| {
+                    try p.closeUnmatchedBlocks();
+                    const o = p.tip();
+                    _ = try p.takeDefinitions(&o.content_start);
+                    if (!scan.isBlank(std.mem.trimEnd(u8, p.text.items[o.content_start..], "\n"))) {
+                        o.tag = .heading;
+                        o.level = level;
+                        p.nodes.items(.tag)[o.node] = .heading;
+                        p.advanceOffset(p.line.len - p.offset, false);
+                        return .leaf;
+                    }
+                }
+            }
+
+            if (scan.thematicBreak(rest)) {
+                try p.closeUnmatchedBlocks();
+                _ = try p.addChild(.thematic_break);
+                p.advanceOffset(p.line.len - p.offset, false);
+                return .leaf;
+            }
         }
 
-        if (!p.indented or container_tag == .list) if (p.listMarker(container)) |item| {
+        // `listMarker` refuses an indented marker by itself.
+        if (p.listMarker(container)) |item| {
             try p.closeUnmatchedBlocks();
             const t = p.tip();
             if (t.tag != .list or t.marker.ordered != item.marker.ordered or t.marker.char != item.marker.char) {
@@ -338,7 +343,7 @@ const Parser = struct {
             p.open.items[d].marker_offset = item.marker_offset;
             p.open.items[d].padding = item.padding;
             return .container;
-        };
+        }
 
         if (p.indented and p.tip().tag != .paragraph and !p.blank) {
             p.advanceOffset(4, true);
@@ -462,7 +467,7 @@ const Parser = struct {
         p.all_closed = true;
     }
 
-    fn canContain(parent: Ast.Tag, child: Ast.Tag) bool {
+    fn canContain(parent: Ast.Node.Tag, child: Ast.Node.Tag) bool {
         return switch (parent) {
             .document, .block_quote, .list_item => child != .list_item,
             .list => child == .list_item,
@@ -472,7 +477,7 @@ const Parser = struct {
 
     /// Opens a block under the tip, closing blocks that cannot hold it.
     /// Returns its depth in `open`.
-    fn addChild(p: *Parser, tag: Ast.Tag) !usize {
+    fn addChild(p: *Parser, tag: Ast.Node.Tag) !usize {
         while (!canContain(p.tip().tag, tag)) try p.finalize();
         const node: Index = @intCast(p.nodes.len);
         try p.nodes.append(p.arena, .{
@@ -672,16 +677,16 @@ fn lineEnd(s: []const u8, pos: usize) ?usize {
 
 const testing = std.testing;
 
-fn expectTags(source: []const u8, expected: []const Ast.Tag) !void {
+fn expectTags(source: []const u8, expected: []const Ast.Node.Tag) !void {
     var arena: std.heap.ArenaAllocator = .init(testing.allocator);
     defer arena.deinit();
     const ast = try parse(arena.allocator(), source);
-    var got: std.ArrayList(Ast.Tag) = .empty;
+    var got: std.ArrayList(Ast.Node.Tag) = .empty;
     try collect(ast, 0, &got, arena.allocator());
-    try testing.expectEqualSlices(Ast.Tag, expected, got.items);
+    try testing.expectEqualSlices(Ast.Node.Tag, expected, got.items);
 }
 
-fn collect(ast: Ast, node: Index, out: *std.ArrayList(Ast.Tag), gpa: Allocator) !void {
+fn collect(ast: Ast, node: Index, out: *std.ArrayList(Ast.Node.Tag), gpa: Allocator) !void {
     try out.append(gpa, ast.tag(node));
     if (ast.tag(node).isContainer()) for (ast.children(node)) |child| try collect(ast, child, out, gpa);
 }
@@ -704,13 +709,13 @@ test "a paragraph of definitions disappears" {
     var arena: std.heap.ArenaAllocator = .init(testing.allocator);
     defer arena.deinit();
     const ast = try parse(arena.allocator(), "[a]: /u 'T'\n[b]:\n  <x y>\ntext\n");
-    try testing.expectEqual(@as(usize, 2), ast.definitions.len);
+    try testing.expectEqual(2, ast.definitions.len);
     try testing.expectEqualStrings("a", ast.string(ast.definitions[0].label));
     try testing.expectEqualStrings("/u", ast.string(ast.definitions[0].destination));
     try testing.expectEqualStrings("T", ast.string(ast.definitions[0].title));
     try testing.expectEqualStrings("x y", ast.string(ast.definitions[1].destination));
     const kids = ast.children(0);
-    try testing.expectEqual(@as(usize, 1), kids.len);
+    try testing.expectEqual(1, kids.len);
     try testing.expectEqualStrings("text", ast.content(kids[0]));
 }
 

@@ -29,7 +29,8 @@ pub const Color = enum(u5) {
     }
 };
 
-pub const Style = packed struct(u16) {
+/// Packed, so styles compare with `==` by their backing integer.
+pub const Style = packed struct {
     bold: bool = false,
     dim: bool = false,
     italic: bool = false,
@@ -37,13 +38,8 @@ pub const Style = packed struct(u16) {
     strike: bool = false,
     reverse: bool = false,
     fg: Color = .default,
-    _pad: u5 = 0,
 
     pub const plain: Style = .{};
-
-    pub fn eql(a: Style, b: Style) bool {
-        return @as(u16, @bitCast(a)) == @as(u16, @bitCast(b));
-    }
 };
 
 pub const Span = struct {
@@ -66,15 +62,15 @@ pub const Emitter = struct {
             if (e.styled) {
                 var style = span.style;
                 if (!e.colors) style.fg = .default;
-                if (!style.eql(current)) {
-                    if (!current.eql(.plain)) try w.writeAll(reset);
-                    if (!style.eql(.plain)) try sgr(w, style);
+                if (style != current) {
+                    if (current != Style.plain) try w.writeAll(reset);
+                    if (style != Style.plain) try sgr(w, style);
                     current = style;
                 }
             }
             try w.writeAll(span.text);
         }
-        if (!current.eql(.plain)) try w.writeAll(reset);
+        if (current != Style.plain) try w.writeAll(reset);
         try w.writeByte('\n');
     }
 };
@@ -105,19 +101,17 @@ fn sgr(w: *std.Io.Writer, style: Style) std.Io.Writer.Error!void {
 
 const testing = std.testing;
 
-fn render(e: Emitter, spans: []const Span) ![]const u8 {
-    const S = struct {
-        var buf: [256]u8 = undefined;
-    };
-    var w: std.Io.Writer = .fixed(&S.buf);
-    try e.line(&w, spans);
-    return w.buffered();
+fn expectLine(expected: []const u8, e: Emitter, spans: []const Span) !void {
+    var out: std.Io.Writer.Allocating = .init(testing.allocator);
+    defer out.deinit();
+    try e.line(&out.writer, spans);
+    try testing.expectEqualStrings(expected, out.written());
 }
 
 const styled: Emitter = .{ .styled = true, .colors = true };
 
 test "plain text sends no escapes" {
-    try testing.expectEqualStrings("hello\n", try render(styled, &.{.{ .text = "hello" }}));
+    try expectLine("hello\n", styled, &.{.{ .text = "hello" }});
 }
 
 test "a style change resets and sends the whole new style" {
@@ -126,30 +120,30 @@ test "a style change resets and sends the whole new style" {
         .{ .text = "b", .style = .{ .bold = true } },
         .{ .text = "c" },
     };
-    try testing.expectEqualStrings("\x1b[1;2ma\x1b[0m\x1b[1mb\x1b[0mc\n", try render(styled, &spans));
+    try expectLine("\x1b[1;2ma\x1b[0m\x1b[1mb\x1b[0mc\n", styled, &spans);
 }
 
 test "a styled line ends with a reset" {
     const spans = [_]Span{.{ .text = "x", .style = .{ .underline = true, .fg = .blue } }};
-    try testing.expectEqualStrings("\x1b[4;34mx\x1b[0m\n", try render(styled, &spans));
+    try expectLine("\x1b[4;34mx\x1b[0m\n", styled, &spans);
 }
 
 test "bright colors and the remaining attributes" {
     const spans = [_]Span{.{ .text = "x", .style = .{ .italic = true, .strike = true, .reverse = true, .fg = .bright_white } }};
-    try testing.expectEqualStrings("\x1b[3;7;9;97mx\x1b[0m\n", try render(styled, &spans));
+    try expectLine("\x1b[3;7;9;97mx\x1b[0m\n", styled, &spans);
 }
 
 test "without colors the attributes stay" {
     const spans = [_]Span{.{ .text = "x", .style = .{ .bold = true, .fg = .blue } }};
-    try testing.expectEqualStrings("\x1b[1mx\x1b[0m\n", try render(.{ .styled = true, .colors = false }, &spans));
+    try expectLine("\x1b[1mx\x1b[0m\n", .{ .styled = true, .colors = false }, &spans);
 }
 
 test "a color alone becomes nothing without colors" {
     const spans = [_]Span{ .{ .text = "a", .style = .{ .fg = .blue } }, .{ .text = "b" } };
-    try testing.expectEqualStrings("ab\n", try render(.{ .styled = true, .colors = false }, &spans));
+    try expectLine("ab\n", .{ .styled = true, .colors = false }, &spans);
 }
 
 test "unstyled output is the text alone" {
     const spans = [_]Span{ .{ .text = "a", .style = .{ .bold = true } }, .{ .text = "b" } };
-    try testing.expectEqualStrings("ab\n", try render(.{ .styled = false, .colors = false }, &spans));
+    try expectLine("ab\n", .{ .styled = false, .colors = false }, &spans);
 }
