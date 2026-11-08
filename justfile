@@ -6,9 +6,13 @@ _default:
 build:
    zig build
 
-# Runs the tests.
+# Runs the unit tests and the CommonMark examples.
 test:
-   zig build test
+   zig build test spec
+
+# Runs the CommonMark examples, or shows one, such as `just spec 42`.
+spec *args:
+   zig build spec -- {{args}}
 
 # Runs mdv with the given arguments, such as `just run examples/tour.md`.
 run *args:
@@ -28,4 +32,4 @@ tour:
 
 # Checks the formatting of the Zig sources.
 fmt-check:
-   zig fmt --check build.zig src
+   zig fmt --check build.zig src test
