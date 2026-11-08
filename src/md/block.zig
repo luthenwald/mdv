@@ -29,13 +29,19 @@ pub fn parse(arena: Allocator, source: []const u8) Allocator.Error!Ast {
     while (p.open.items.len > 0) try p.finalize();
 
     // Inlines come second, once every link reference definition is known.
-    const context: inlines.Context = .{
+    var context: inlines.Context = .{
         .arena = arena,
         .nodes = &p.nodes,
         .extra = &p.extra,
         .text = &p.text,
         .links = &p.links,
     };
+    var refs: inlines.References = .empty;
+    try inlines.references(context, p.definitions.items, &refs);
+    context.refs = &refs;
+    for (p.nodes.items(.tag), p.nodes.items(.data)) |tag, *data| {
+        if (tag == .code_block) data.code.info = try inlines.decode(context, data.code.info);
+    }
     for (p.text_blocks.items) |block| {
         const children = try inlines.parse(context, block.content);
         p.nodes.items(.data)[block.node].parent.children = children;

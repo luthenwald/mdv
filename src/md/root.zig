@@ -13,4 +13,5 @@ test {
     _ = html;
     _ = @import("entities.zig");
     _ = @import("unicode.zig");
+    _ = @import("inline.zig");
 }
