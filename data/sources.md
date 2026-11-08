@@ -1,6 +1,6 @@
 # Data sources
 
-These files are kept exactly as published, fetched on 2026-11-08. The build generates the entity and display width tables from them.
+These files are kept exactly as published, fetched on 2026-11-08. The build generates the entity, case folding and display width tables from them.
 
 ## entities.json
 
@@ -19,5 +19,7 @@ The named character references of HTML, 2,231 names.
   sha256: `2cb2bb9455cda83e8481541ecf5b6dfda66a3bb89efa3fa7c5297eccf607b72b`
 - `DerivedGeneralCategory.txt`, from https://www.unicode.org/Public/17.0.0/ucd/extracted/DerivedGeneralCategory.txt
   sha256: `d62e5bab70ca74f099343f71224fa051cb1fdd61a1ab45c0488c44cfc0b6102e`
+- `CaseFolding.txt`, from https://www.unicode.org/Public/17.0.0/ucd/CaseFolding.txt (fetched 2026-11-08)
+  sha256: `ff8d8fefbf123574205085d6714c36149eb946d717a0c585c27f0f4ef58c4183`
 
 Copyright © 2025 Unicode, Inc. Distributed under the Unicode License v3, whose copyright and permission notice is in `unicode-license.txt` (from https://www.unicode.org/license.txt).
