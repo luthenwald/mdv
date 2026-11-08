@@ -170,4 +170,5 @@ test {
     _ = layout;
     _ = pager;
     _ = tty;
+    _ = @import("term/width.zig");
 }

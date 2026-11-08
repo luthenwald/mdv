@@ -25,6 +25,11 @@ pub fn build(b: *std.Build) void {
     options.addOption([]const u8, "version", @import("build.zig.zon").version);
     mod.addOptions("build_options", options);
     mod.addImport("md", md);
+    mod.addImport("width_table", generate(b, "gen_width", &.{
+        "data/EastAsianWidth.txt",
+        "data/emoji-data.txt",
+        "data/DerivedGeneralCategory.txt",
+    }, "width_table.zig"));
 
     const exe = b.addExecutable(.{
         .name = "mdv",
