@@ -1,6 +1,6 @@
 # mdv
 
-A minimal markdown viewer for the terminal. `mdv FILE` renders the file once to standard output and exits: no full-screen interface, no keys to learn. Paging, search and scrolling are left to your pager, so `mdv` composes with `less`, `head` and `grep` like any other command.
+A minimal markdown viewer for the terminal. `mdv FILE` renders the file once to standard output and exits: no full-screen interface, no keys to learn. At a terminal, a long document opens in your pager (`less` unless you set `PAGER` or `MDV_PAGER`) and a short one is simply printed. Piped output stays plain text, so `mdv` composes with `head` and `grep` like any other command.
 
 Colors come from your terminal's own theme. mdv sends only text attributes (bold, italic, dim, underline, strikethrough) and, at most, one of the sixteen palette colors, never a color of its own. Links are real hyperlinks in terminals that support them.
 
@@ -10,6 +10,7 @@ mdv is at the very start. Nothing is rendered yet.
 
 - `mdv README.md` renders a file.
 - `cat notes.md | mdv` or `mdv -` renders standard input.
+- `mdv -P notes.md` prints without the pager.
 
 ## Building
 
