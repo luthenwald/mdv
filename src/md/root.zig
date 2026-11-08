@@ -11,4 +11,6 @@ test {
     _ = scan;
     _ = @import("block.zig");
     _ = html;
+    _ = @import("entities.zig");
+    _ = @import("unicode.zig");
 }

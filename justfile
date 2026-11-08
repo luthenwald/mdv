@@ -32,4 +32,4 @@ tour:
 
 # Checks the formatting of the Zig sources.
 fmt-check:
-   zig fmt --check build.zig src test
+   zig fmt --check build.zig build src test
