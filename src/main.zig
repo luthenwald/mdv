@@ -3,6 +3,7 @@
 
 const std = @import("std");
 const build_options = @import("build_options");
+const md = @import("md");
 const cli = @import("cli.zig");
 const emit = @import("term/emit.zig");
 const layout = @import("term/layout.zig");
@@ -43,7 +44,12 @@ pub fn main(init: std.process.Init) !u8 {
 
     const terminal = tty.decide(options, try tty.gather(io, init.environ_map));
     const output: Output = .{
-        .lines = try lay(arena, inputs.texts, terminal.width),
+        .lines = try lay(arena, inputs.texts, .{
+            .width = terminal.width,
+            .styled = terminal.styled,
+            .ascii = options.ascii,
+            .no_links = options.no_links,
+        }),
         .emitter = .{ .styled = terminal.styled, .colors = terminal.colors },
     };
 
@@ -72,14 +78,14 @@ const Output = struct {
 
 /// Lays out every input; each one after the first starts after a blank line
 /// with its name in dim.
-fn lay(arena: std.mem.Allocator, inputs: []const Input, width: u16) ![]const layout.Line {
+fn lay(arena: std.mem.Allocator, inputs: []const Input, options: layout.Options) ![]const layout.Line {
     var lines: std.ArrayList(layout.Line) = .empty;
     for (inputs, 0..) |input, i| {
         if (i > 0) {
             const header = try arena.dupe(emit.Span, &.{.{ .text = input.name, .style = .{ .dim = true } }});
             try lines.appendSlice(arena, &.{ &.{}, header });
         }
-        try lines.appendSlice(arena, try layout.paragraphs(arena, input.text, width));
+        try lines.appendSlice(arena, try layout.document(arena, try md.parse(arena, input.text), options));
     }
     return lines.items;
 }

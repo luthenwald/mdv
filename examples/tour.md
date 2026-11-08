@@ -30,8 +30,8 @@ Setext heading, level two
     - third depth
 - back at the top
 
-1. first
-2. second
+8. eighth
+9. ninth
 10. tenth, so the numbers align
 
 - [ ] a task to do
