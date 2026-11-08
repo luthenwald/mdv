@@ -10,6 +10,10 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    const options = b.addOptions();
+    options.addOption([]const u8, "version", @import("build.zig.zon").version);
+    mod.addOptions("build_options", options);
+
     const exe = b.addExecutable(.{
         .name = "mdv",
         .root_module = mod,
