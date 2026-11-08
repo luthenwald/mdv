@@ -27,6 +27,17 @@ pub fn isBlank(s: []const u8) bool {
     return true;
 }
 
+/// Spaces and tabs, at most one line ending, then spaces and tabs.
+pub fn spaceAndNewline(s: []const u8, pos: usize) usize {
+    var i = pos;
+    while (i < s.len and isSpaceOrTab(s[i])) i += 1;
+    if (i < s.len and s[i] == '\n') {
+        i += 1;
+        while (i < s.len and isSpaceOrTab(s[i])) i += 1;
+    }
+    return i;
+}
+
 /// Characters that may start a block other than a paragraph.
 pub fn maybeSpecial(s: []const u8) bool {
     if (s.len == 0) return false;
@@ -291,6 +302,10 @@ pub const Part = struct {
     next: usize,
 };
 
+/// The deepest nesting of parentheses in a link destination. The spec
+/// asks for at least three.
+pub const max_paren_depth = 32;
+
 /// A link destination at `pos`: `<...>` on one line, or a run without spaces
 /// or control characters in which parentheses balance.
 pub fn linkDestination(s: []const u8, pos: usize) ?Part {
@@ -315,6 +330,8 @@ pub fn linkDestination(s: []const u8, pos: usize) ?Part {
         if (c == '\\' and i + 1 < s.len and isEscapable(s[i + 1])) {
             i += 1;
         } else if (c == '(') {
+            // Deeper nesting is refused, which keeps scanning linear.
+            if (depth == max_paren_depth) return null;
             depth += 1;
         } else if (c == ')') {
             if (depth == 0) break;
@@ -348,6 +365,54 @@ pub fn linkTitle(s: []const u8, pos: usize) ?Part {
         }
     }
     return null;
+}
+
+pub const Autolink = struct {
+    /// Past the `>`.
+    end: usize,
+    /// An email address rather than a URI.
+    email: bool,
+};
+
+/// `<scheme:rest>` or `<address@domain>` at `pos`.
+pub fn autolink(s: []const u8, pos: usize) ?Autolink {
+    if (pos >= s.len or s[pos] != '<') return null;
+    const scheme = pos + 1;
+    if (scheme < s.len and std.ascii.isAlphabetic(s[scheme])) {
+        var i = scheme + 1;
+        while (i < s.len and i - scheme < 32 and isSchemeChar(s[i])) i += 1;
+        if (i - scheme >= 2 and i < s.len and s[i] == ':') {
+            i += 1;
+            while (i < s.len and s[i] > ' ' and s[i] != '<' and s[i] != '>') i += 1;
+            if (i < s.len and s[i] == '>') return .{ .end = i + 1, .email = false };
+        }
+    }
+    var i = pos + 1;
+    while (i < s.len and isEmailChar(s[i])) i += 1;
+    if (i == pos + 1 or i >= s.len or s[i] != '@') return null;
+    i += 1;
+    // Labels of at most 63 letters, digits and hyphens, not starting or ending with a hyphen.
+    while (true) {
+        const label = i;
+        if (i >= s.len or !std.ascii.isAlphanumeric(s[i])) return null;
+        while (i < s.len and i - label < 63 and (std.ascii.isAlphanumeric(s[i]) or s[i] == '-')) i += 1;
+        if (s[i - 1] == '-') return null;
+        if (i < s.len and s[i] == '.') {
+            i += 1;
+            continue;
+        }
+        break;
+    }
+    if (i < s.len and s[i] == '>') return .{ .end = i + 1, .email = true };
+    return null;
+}
+
+fn isSchemeChar(c: u8) bool {
+    return std.ascii.isAlphanumeric(c) or c == '+' or c == '.' or c == '-';
+}
+
+fn isEmailChar(c: u8) bool {
+    return std.ascii.isAlphanumeric(c) or std.mem.indexOfScalar(u8, ".!#$%&'*+/=?^_`{|}~-", c) != null;
 }
 
 const testing = std.testing;
@@ -425,4 +490,13 @@ test "link labels, destinations and titles" {
     const t = linkTitle("'it\\'s' x", 0).?;
     try testing.expectEqualStrings("it\\'s", "'it\\'s' x"[t.start..t.end]);
     try testing.expect(linkTitle("(a(b))", 0) == null);
+}
+
+test autolink {
+    try testing.expectEqual(Autolink{ .end = 20, .email = false }, autolink("<http://foo.bar.baz>", 0).?);
+    try testing.expectEqual(Autolink{ .end = 17, .email = true }, autolink("<foo@bar.example>x", 0).?);
+    try testing.expectEqual(null, autolink("<m:abc>", 0));
+    try testing.expectEqual(null, autolink("<http://a b>", 0));
+    try testing.expectEqual(null, autolink("<foo@-bar>", 0));
+    try testing.expectEqual(null, autolink("<foo@bar->", 0));
 }

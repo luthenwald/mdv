@@ -663,7 +663,7 @@ fn definition(s: []const u8) ?Found {
         if (!scan.isWhitespace(c)) break;
     } else return null;
     if (label_end >= s.len or s[label_end] != ':') return null;
-    const dest = scan.linkDestination(s, spaceAndNewline(s, label_end + 1)) orelse return null;
+    const dest = scan.linkDestination(s, scan.spaceAndNewline(s, label_end + 1)) orelse return null;
     var found: Found = .{
         .label = .{ 1, @intCast(label_end - 1) },
         .destination = .{ @intCast(dest.start), @intCast(dest.end) },
@@ -671,7 +671,7 @@ fn definition(s: []const u8) ?Found {
         .len = 0,
     };
     const before_title = dest.next;
-    const title_at = spaceAndNewline(s, before_title);
+    const title_at = scan.spaceAndNewline(s, before_title);
     if (title_at != before_title) {
         if (scan.linkTitle(s, title_at)) |title| {
             if (lineEnd(s, title.next)) |end| {
@@ -684,17 +684,6 @@ fn definition(s: []const u8) ?Found {
     // Without a title that ends its line, the destination has to.
     found.len = lineEnd(s, before_title) orelse return null;
     return found;
-}
-
-/// Spaces and tabs, at most one line ending, then spaces and tabs.
-fn spaceAndNewline(s: []const u8, pos: usize) usize {
-    var i = pos;
-    while (i < s.len and isSpaceOrTab(s[i])) i += 1;
-    if (i < s.len and s[i] == '\n') {
-        i += 1;
-        while (i < s.len and isSpaceOrTab(s[i])) i += 1;
-    }
-    return i;
 }
 
 /// Past the spaces, tabs and line ending at `pos`, if nothing else comes first.
