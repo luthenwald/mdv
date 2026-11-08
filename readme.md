@@ -4,13 +4,15 @@ A minimal markdown viewer for the terminal. `mdv FILE` renders the file once to 
 
 Colors come from your terminal's own theme. mdv sends only text attributes (bold, italic, dim, underline, strikethrough) and, at most, one of the sixteen palette colors, never a color of its own. Links are real hyperlinks in terminals that support them.
 
-mdv is at the very start. Nothing is rendered yet.
+mdv is at an early stage. It wraps paragraphs to your terminal and pages them, but it does not yet understand markdown, so headings, lists and emphasis appear as you wrote them.
 
 ## Use
 
 - `mdv README.md` renders a file.
 - `cat notes.md | mdv` or `mdv -` renders standard input.
 - `mdv -P notes.md` prints without the pager.
+- `mdv a.md b.md` renders both, each after the first headed by its name.
+- `mdv --width 60 notes.md` wraps at 60 columns; `--color=always` keeps the styles in a pipe, `--color=never` drops them.
 
 ## Building
 
