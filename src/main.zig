@@ -5,6 +5,7 @@ const std = @import("std");
 const build_options = @import("build_options");
 const cli = @import("cli.zig");
 const emit = @import("term/emit.zig");
+const layout = @import("term/layout.zig");
 const tty = @import("term/tty.zig");
 
 pub fn main(init: std.process.Init) !u8 {
@@ -51,7 +52,7 @@ pub fn main(init: std.process.Init) !u8 {
             try out.writeByte('\n');
             try emitter.line(out, &.{.{ .text = input.name, .style = .{ .dim = true } }});
         }
-        try out.writeAll(input.text);
+        for (try layout.paragraphs(arena, input.text, terminal.width)) |line| try emitter.line(out, line);
     }
     try out.flush();
     return if (inputs.failed) 1 else 0;
@@ -117,5 +118,6 @@ fn describe(e: anyerror) []const u8 {
 test {
     _ = cli;
     _ = emit;
+    _ = layout;
     _ = tty;
 }
