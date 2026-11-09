@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## A first look
+
+0.1.0 · 2026-11-09 · `ytvuqsmq::rpustwzx`
+
 - New: `mdv FILE` and `cat FILE | mdv` render a markdown file for your terminal, wrapped to its width and never wider than 80 columns. The width comes from the terminal on standard output, standard error or `/dev/tty`, then from `COLUMNS`, and `--width` sets it yourself, past 80 if you like.
 - New: headings show their `#` markers in dim. The first level is bold and underlined, the second bold, and deeper levels bold and dim. Emphasis is italic, strong text bold, and inline code keeps its backticks around blue text.
 - New: lists get bullets that change with depth and numbers aligned on the right; quotes and code blocks sit behind a dim gutter, and code is never reflowed. A code block's language stands above it in dim, and a code line too long for the width continues after a `↪`.
