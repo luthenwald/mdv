@@ -14,6 +14,10 @@ test:
 spec *args:
    zig build spec -- {{args}}
 
+# Runs cmark's pathological inputs, timed, or those whose names contain the argument.
+pathological *args:
+   zig build pathological -- {{args}}
+
 # Runs mdv with the given arguments, such as `just run examples/tour.md`.
 run *args:
    zig build run -- {{args}}
