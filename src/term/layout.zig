@@ -92,9 +92,10 @@ const Prefix = struct {
     used: bool = false,
 };
 
-/// A word, a space between words, or a hard line break.
+/// A word, a space between words, a place to break between wide
+/// characters without a space, or a hard line break.
 const Piece = struct {
-    kind: enum { text, space, newline },
+    kind: enum { text, space, joint, newline },
     text: []const u8 = "",
     style: Style = .plain,
     link: ?[]const u8 = null,
@@ -546,8 +547,23 @@ const Layout = struct {
                 try out.append(l.arena, .{ .kind = .space, .style = style, .link = link });
                 continue;
             }
-            const start = i;
-            while (i < text.len and !isSpace(text[i])) i += 1;
+            var start = i;
+            var previous: u21 = 0;
+            while (i < text.len and !isSpace(text[i])) {
+                // Invalid UTF-8 goes a byte at a time, as a replacement, so
+                // a space after a broken sequence still separates words.
+                const n = std.unicode.utf8ByteSequenceLength(text[i]) catch 1;
+                const decoded: ?u21 = if (i + n <= text.len) std.unicode.utf8Decode(text[i..][0..n]) catch null else null;
+                const len = if (decoded != null) n else 1;
+                const c = decoded orelse 0xFFFD;
+                if (i > start and canBreakBetween(previous, c)) {
+                    try out.append(l.arena, .{ .kind = .text, .text = text[start..i], .style = style, .link = link });
+                    try out.append(l.arena, .{ .kind = .joint, .style = style, .link = link });
+                    start = i;
+                }
+                previous = c;
+                i = @min(text.len, i + len);
+            }
             try out.append(l.arena, .{ .kind = .text, .text = text[start..i], .style = style, .link = link });
         }
     }
@@ -563,6 +579,7 @@ const Layout = struct {
         var out: std.ArrayList(Line) = .empty;
         var current: std.ArrayList(Span) = .empty;
         var col: usize = 0;
+        // The space or joint before the next word, if the line goes on.
         var space: ?Piece = null;
         var i: usize = 0;
         while (i < pieces.len) {
@@ -570,6 +587,10 @@ const Layout = struct {
             switch (p.kind) {
                 .space => {
                     if (col > 0) space = p;
+                    i += 1;
+                },
+                .joint => {
+                    if (col > 0 and space == null) space = p;
                     i += 1;
                 },
                 .newline => {
@@ -582,12 +603,12 @@ const Layout = struct {
                     var end = i;
                     var w: usize = 0;
                     while (end < pieces.len and pieces[end].kind == .text) : (end += 1) w += width.ofString(pieces[end].text);
-                    const gap: usize = @intFromBool(space != null);
+                    const gap: usize = if (space) |s| @intFromBool(s.kind == .space) else 0;
                     if (col > 0 and col + gap + w > avail) {
                         try out.append(l.arena, try current.toOwnedSlice(l.arena));
                         col = 0;
-                    } else if (space) |s| {
-                        try current.append(l.arena, .{ .text = " ", .style = s.style, .link = s.link });
+                    } else if (space != null and space.?.kind == .space) {
+                        try current.append(l.arena, .{ .text = " ", .style = space.?.style, .link = space.?.link });
                         col += 1;
                     }
                     space = null;
@@ -735,6 +756,84 @@ fn longestWord(pieces: []const Piece) usize {
     return longest;
 }
 
+/// Whether a line may break between `a` and `b` inside a run without
+/// spaces: next to a wide character, as between ideographs, but not inside
+/// a joined emoji or before a combining mark, not before closing
+/// punctuation or a small kana, and not after opening punctuation.
+fn canBreakBetween(a: u21, b: u21) bool {
+    if (width.ofCodepoint(a) != 2 and width.ofCodepoint(b) != 2) return false;
+    if (width.ofCodepoint(b) == 0 or a == 0x200D) return false;
+    if (b >= 0x1F3FB and b <= 0x1F3FF) return false; // skin tones
+    if (std.mem.indexOfScalar(u21, no_line_start, b) != null) return false;
+    return std.mem.indexOfScalar(u21, no_line_end, a) == null;
+}
+
+const no_line_start: []const u21 = &.{
+    '、',
+    '。',
+    '，',
+    '．',
+    '：',
+    '；',
+    '？',
+    '！',
+    '）',
+    '］',
+    '｝',
+    '」',
+    '』',
+    '】',
+    '〕',
+    '〉',
+    '》',
+    '〙',
+    '〗',
+    '〟',
+    '・',
+    'ー',
+    'ゝ',
+    'ゞ',
+    'ヽ',
+    'ヾ',
+    '々',
+    '〜',
+    'ぁ',
+    'ぃ',
+    'ぅ',
+    'ぇ',
+    'ぉ',
+    'っ',
+    'ゃ',
+    'ゅ',
+    'ょ',
+    'ゎ',
+    'ゕ',
+    'ゖ',
+    'ァ',
+    'ィ',
+    'ゥ',
+    'ェ',
+    'ォ',
+    'ッ',
+    'ャ',
+    'ュ',
+    'ョ',
+    'ヮ',
+    'ヵ',
+    'ヶ',
+    ')',
+    ']',
+    '}',
+    ',',
+    '.',
+    ':',
+    ';',
+    '?',
+    '!',
+};
+
+const no_line_end: []const u21 = &.{ '（', '［', '｛', '「', '『', '【', '〔', '〈', '《', '〘', '〖', '〝', '(', '[', '{' };
+
 /// Quotes and lists nested deeper than this lay out flat.
 const max_depth = 32;
 
@@ -836,6 +935,14 @@ test "a word wider than the line is cut" {
 
 test "wide characters wrap by display width" {
     try expectLayout("日本語 日本語", .{ .width = 7, .styled = false }, "日本語\n日本語");
+}
+
+test "lines break between wide characters, minding punctuation" {
+    try expectLayout("日本語のテキスト。「引用」です", .{ .width = 10, .styled = false }, "日本語のテ\nキスト。\n「引用」で\nす");
+    try expectLayout("text 日本 more", .{ .width = 8, .styled = false }, "text 日\n本 more");
+    try expectLayout("🦎🦎🦎", .{ .width = 4, .styled = false }, "🦎🦎\n🦎");
+    try expectLayout("日\xe6\x97", .{ .width = 4, .styled = false }, "日\xe6\x97");
+    try expectLayout("a\xc9\tb", .{ .width = 4, .styled = false }, "a\xc9 b");
 }
 
 test "a hard break ends the line" {
