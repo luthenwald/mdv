@@ -17,10 +17,12 @@ like this.
 
 ⟨d⟩## ⟨/⟩⟨b⟩Inline⟨/⟩
 
-Text can be ⟨i⟩emphasized⟨/⟩, ⟨b⟩strong⟨/⟩, ⟨bi⟩both⟨/⟩, ⟨s⟩struck through⟨/⟩, or ⟨d⟩`⟨/⟩⟨34⟩code⟨/⟩⟨d⟩`⟨/⟩. Escapes keep
-*literal* stars, and entities such as © & — decode.
+Text can be ⟨i⟩emphasized⟨/⟩, ⟨b⟩strong⟨/⟩, ⟨bi⟩both⟨/⟩, ⟨s⟩struck through⟨/⟩ with two tildes or ⟨s⟩one⟨/⟩, or
+⟨d⟩`⟨/⟩⟨34⟩code⟨/⟩⟨d⟩`⟨/⟩. Escapes keep *literal* stars, and entities such as © & — decode. Raw
+⟨d⟩<kbd>⟨/⟩inline html⟨d⟩</kbd>⟨/⟩ is shown as written.
 
-A ⟨link https://commonmark.org⟩⟨u34⟩link with a title⟨/link⟩⟨/⟩, a ⟨link https://spec.commonmark.org/0.31.2/⟩⟨u34⟩reference link⟨/link⟩⟨/⟩, an autolink ⟨link https://ziglang.org⟩⟨u34⟩https://ziglang.org⟨/link⟩⟨/⟩, and an
+A ⟨link https://commonmark.org⟩⟨u34⟩link with a title⟨/link⟩⟨/⟩, a ⟨link https://spec.commonmark.org/0.31.2/⟩⟨u34⟩reference link⟨/link⟩⟨/⟩, a ⟨u34⟩relative link⟨/⟩ ⟨d⟩(manual.md)⟨/⟩ whose path
+follows it, an autolink ⟨link https://ziglang.org⟩⟨u34⟩https://ziglang.org⟨/link⟩⟨/⟩, an email ⟨link mailto:hello@example.org⟩⟨u34⟩hello@example.org⟨/link⟩⟨/⟩, and an
 image [image: a small diagram] ⟨d⟩(diagram.png)⟨/⟩.
 
 ⟨d⟩## ⟨/⟩⟨b⟩Setext heading, level two⟨/⟩
@@ -28,6 +30,13 @@ image [image: a small diagram] ⟨d⟩(diagram.png)⟨/⟩.
 ⟨d⟩### ⟨/⟩⟨bd⟩Third level⟨/⟩
 
 ⟨d⟩#### ⟨/⟩⟨bd⟩Fourth level⟨/⟩
+
+⟨d⟩##### ⟨/⟩⟨bd⟩Fifth level⟨/⟩
+
+⟨d⟩###### ⟨/⟩⟨bd⟩Sixth level⟨/⟩
+
+⟨d⟩## ⟨/⟩⟨b⟩A heading long enough to wrap at the measure, so its second line hangs under⟨/⟩
+   ⟨b⟩the text and not under the markers⟨/⟩
 
 ⟨d⟩## ⟨/⟩⟨b⟩Lists⟨/⟩
 
@@ -41,8 +50,14 @@ image [image: a small diagram] ⟨d⟩(diagram.png)⟨/⟩.
  9. ninth
 10. tenth, so the numbers align
 
+1) a parenthesis
+2) as the delimiter
+
 ☐ a task to do
 ☑ a task done
+
+1. ☐ a numbered task
+2. ☑ and one done
 
 A loose list:
 
@@ -64,7 +79,7 @@ A loose list:
 ⟨d⟩│ ⟨/⟩const std = @import("std");
 ⟨d⟩│⟨/⟩
 ⟨d⟩│ ⟨/⟩pub fn main(init: std.process.Init) !void {
-⟨d⟩│ ⟨/⟩    _ = init;
+⟨d⟩│ ⟨/⟩    _ = init; // indented with a tab
 ⟨d⟩│ ⟨/⟩}
 
 ⟨d⟩│ ⟨/⟩an indented code block
@@ -77,8 +92,19 @@ A loose list:
 ⟨d⟩├─────────┼───────────┼───────┤⟨/⟩
 ⟨d⟩│ ⟨/⟩heading⟨d⟩ │ ⟨/⟩  bold   ⟨d⟩ │ ⟨/⟩   v1⟨d⟩ │⟨/⟩
 ⟨d⟩│ ⟨/⟩table  ⟨d⟩ │ ⟨/⟩box lines⟨d⟩ │ ⟨/⟩   v1⟨d⟩ │⟨/⟩
-⟨d⟩│ ⟨/⟩math   ⟨d⟩ │ ⟨/⟩ unicode ⟨d⟩ │ ⟨/⟩later⟨d⟩ │⟨/⟩
+⟨d⟩│ ⟨/⟩emoji  ⟨d⟩ │ ⟨/⟩two cells⟨d⟩ │ ⟨/⟩   v1⟨d⟩ │⟨/⟩
 ⟨d⟩└─────────┴───────────┴───────┘⟨/⟩
+
+A table whose longest words do not fit side by side is listed row by row
+instead:
+
+⟨d⟩┌────────────┬────────────────────────────────────────────────┬────────────────┐⟨/⟩
+⟨d⟩│ ⟨/⟩⟨b⟩option⟨/⟩    ⟨d⟩ │ ⟨/⟩⟨b⟩meaning⟨/⟩                                       ⟨d⟩ │ ⟨/⟩⟨b⟩default⟨/⟩       ⟨d⟩ │⟨/⟩
+⟨d⟩├────────────┼────────────────────────────────────────────────┼────────────────┤⟨/⟩
+⟨d⟩│ `⟨/⟩⟨34⟩--width⟨/⟩⟨d⟩`⟨/⟩ ⟨d⟩ │ ⟨/⟩the wrap width, which lifts the eighty-column ⟨d⟩ │ ⟨/⟩the terminal's⟨d⟩ │⟨/⟩
+⟨d⟩│ ⟨/⟩          ⟨d⟩ │ ⟨/⟩cap                                           ⟨d⟩ │ ⟨/⟩              ⟨d⟩ │⟨/⟩
+⟨d⟩│ `⟨/⟩⟨34⟩--paging⟨/⟩⟨d⟩` │ `⟨/⟩⟨34⟩auto⟨/⟩⟨d⟩`⟨/⟩, ⟨d⟩`⟨/⟩⟨34⟩always⟨/⟩⟨d⟩`⟨/⟩ or ⟨d⟩`⟨/⟩⟨34⟩never⟨/⟩⟨d⟩`⟨/⟩                   ⟨d⟩ │ `⟨/⟩⟨34⟩auto⟨/⟩⟨d⟩`⟨/⟩        ⟨d⟩ │⟨/⟩
+⟨d⟩└────────────┴────────────────────────────────────────────────┴────────────────┘⟨/⟩
 
 ⟨d⟩## ⟨/⟩⟨b⟩Breaks and raw HTML⟨/⟩
 
@@ -113,20 +139,33 @@ like this.
 ⟨d⟩## ⟨/⟩⟨b⟩Inline⟨/⟩
 
 Text can be ⟨i⟩emphasized⟨/⟩, ⟨b⟩strong⟨/⟩, ⟨bi⟩both⟨/⟩,
-⟨s⟩struck through⟨/⟩, or ⟨d⟩`⟨/⟩⟨34⟩code⟨/⟩⟨d⟩`⟨/⟩. Escapes keep
-*literal* stars, and entities such as ©
-& — decode.
+⟨s⟩struck through⟨/⟩ with two tildes or ⟨s⟩one⟨/⟩,
+or ⟨d⟩`⟨/⟩⟨34⟩code⟨/⟩⟨d⟩`⟨/⟩. Escapes keep *literal* stars,
+and entities such as © & — decode. Raw
+⟨d⟩<kbd>⟨/⟩inline html⟨d⟩</kbd>⟨/⟩ is shown as
+written.
 
-A ⟨link https://commonmark.org⟩⟨u34⟩link with a title⟨/link⟩⟨/⟩, a ⟨link https://spec.commonmark.org/0.31.2/⟩⟨u34⟩reference link⟨/link⟩⟨/⟩,
-an autolink ⟨link https://ziglang.org⟩⟨u34⟩https://ziglang.org⟨/link⟩⟨/⟩, and an
-image [image: a small diagram]
-⟨d⟩(diagram.png)⟨/⟩.
+A ⟨link https://commonmark.org⟩⟨u34⟩link with a title⟨/link⟩⟨/⟩, a ⟨link https://spec.commonmark.org/0.31.2/⟩⟨u34⟩reference link⟨/link⟩⟨/⟩, a
+⟨u34⟩relative link⟨/⟩ ⟨d⟩(manual.md)⟨/⟩ whose path
+follows it, an autolink
+⟨link https://ziglang.org⟩⟨u34⟩https://ziglang.org⟨/link⟩⟨/⟩, an email
+⟨link mailto:hello@example.org⟩⟨u34⟩hello@example.org⟨/link⟩⟨/⟩, and an image [image:
+a small diagram] ⟨d⟩(diagram.png)⟨/⟩.
 
 ⟨d⟩## ⟨/⟩⟨b⟩Setext heading, level two⟨/⟩
 
 ⟨d⟩### ⟨/⟩⟨bd⟩Third level⟨/⟩
 
 ⟨d⟩#### ⟨/⟩⟨bd⟩Fourth level⟨/⟩
+
+⟨d⟩##### ⟨/⟩⟨bd⟩Fifth level⟨/⟩
+
+⟨d⟩###### ⟨/⟩⟨bd⟩Sixth level⟨/⟩
+
+⟨d⟩## ⟨/⟩⟨b⟩A heading long enough to wrap at the⟨/⟩
+   ⟨b⟩measure, so its second line hangs⟨/⟩
+   ⟨b⟩under the text and not under the⟨/⟩
+   ⟨b⟩markers⟨/⟩
 
 ⟨d⟩## ⟨/⟩⟨b⟩Lists⟨/⟩
 
@@ -140,8 +179,14 @@ image [image: a small diagram]
  9. ninth
 10. tenth, so the numbers align
 
+1) a parenthesis
+2) as the delimiter
+
 ☐ a task to do
 ☑ a task done
+
+1. ☐ a numbered task
+2. ☑ and one done
 
 A loose list:
 
@@ -164,7 +209,7 @@ A loose list:
 ⟨d⟩│⟨/⟩
 ⟨d⟩│ ⟨/⟩pub fn main(init: std.process.Init) !v
 ⟨d⟩↪ ⟨/⟩oid {
-⟨d⟩│ ⟨/⟩    _ = init;
+⟨d⟩│ ⟨/⟩    _ = init; // indented with a tab
 ⟨d⟩│ ⟨/⟩}
 
 ⟨d⟩│ ⟨/⟩an indented code block
@@ -177,8 +222,21 @@ A loose list:
 ⟨d⟩├─────────┼───────────┼───────┤⟨/⟩
 ⟨d⟩│ ⟨/⟩heading⟨d⟩ │ ⟨/⟩  bold   ⟨d⟩ │ ⟨/⟩   v1⟨d⟩ │⟨/⟩
 ⟨d⟩│ ⟨/⟩table  ⟨d⟩ │ ⟨/⟩box lines⟨d⟩ │ ⟨/⟩   v1⟨d⟩ │⟨/⟩
-⟨d⟩│ ⟨/⟩math   ⟨d⟩ │ ⟨/⟩ unicode ⟨d⟩ │ ⟨/⟩later⟨d⟩ │⟨/⟩
+⟨d⟩│ ⟨/⟩emoji  ⟨d⟩ │ ⟨/⟩two cells⟨d⟩ │ ⟨/⟩   v1⟨d⟩ │⟨/⟩
 ⟨d⟩└─────────┴───────────┴───────┘⟨/⟩
+
+A table whose longest words do not fit
+side by side is listed row by row
+instead:
+
+⟨b⟩option:⟨/⟩ ⟨d⟩`⟨/⟩⟨34⟩--width⟨/⟩⟨d⟩`⟨/⟩
+⟨b⟩meaning:⟨/⟩ the wrap width, which lifts the
+eighty-column cap
+⟨b⟩default:⟨/⟩ the terminal's
+
+⟨b⟩option:⟨/⟩ ⟨d⟩`⟨/⟩⟨34⟩--paging⟨/⟩⟨d⟩`⟨/⟩
+⟨b⟩meaning:⟨/⟩ ⟨d⟩`⟨/⟩⟨34⟩auto⟨/⟩⟨d⟩`⟨/⟩, ⟨d⟩`⟨/⟩⟨34⟩always⟨/⟩⟨d⟩`⟨/⟩ or ⟨d⟩`⟨/⟩⟨34⟩never⟨/⟩⟨d⟩`⟨/⟩
+⟨b⟩default:⟨/⟩ ⟨d⟩`⟨/⟩⟨34⟩auto⟨/⟩⟨d⟩`⟨/⟩
 
 ⟨d⟩## ⟨/⟩⟨b⟩Breaks and raw HTML⟨/⟩
 
@@ -217,14 +275,20 @@ like this.
 ⟨d⟩## ⟨/⟩⟨b⟩Inline⟨/⟩
 
 Text can be ⟨i⟩emphasized⟨/⟩,
-⟨b⟩strong⟨/⟩, ⟨bi⟩both⟨/⟩, ⟨s⟩struck through⟨/⟩,
-or ⟨d⟩`⟨/⟩⟨34⟩code⟨/⟩⟨d⟩`⟨/⟩. Escapes keep
-*literal* stars, and entities
-such as © & — decode.
+⟨b⟩strong⟨/⟩, ⟨bi⟩both⟨/⟩, ⟨s⟩struck through⟨/⟩
+with two tildes or ⟨s⟩one⟨/⟩, or
+⟨d⟩`⟨/⟩⟨34⟩code⟨/⟩⟨d⟩`⟨/⟩. Escapes keep *literal*
+stars, and entities such as ©
+& — decode. Raw ⟨d⟩<kbd>⟨/⟩inline
+html⟨d⟩</kbd>⟨/⟩ is shown as
+written.
 
 A ⟨link https://commonmark.org⟩⟨u34⟩link with a title⟨/link⟩⟨/⟩, a
-⟨link https://spec.commonmark.org/0.31.2/⟩⟨u34⟩reference link⟨/link⟩⟨/⟩, an autolink
-⟨link https://ziglang.org⟩⟨u34⟩https://ziglang.org⟨/link⟩⟨/⟩, and an
+⟨link https://spec.commonmark.org/0.31.2/⟩⟨u34⟩reference link⟨/link⟩⟨/⟩, a ⟨u34⟩relative⟨/⟩
+⟨u34⟩link⟨/⟩ ⟨d⟩(manual.md)⟨/⟩ whose path
+follows it, an autolink
+⟨link https://ziglang.org⟩⟨u34⟩https://ziglang.org⟨/link⟩⟨/⟩, an email
+⟨link mailto:hello@example.org⟩⟨u34⟩hello@example.org⟨/link⟩⟨/⟩, and an
 image [image: a small diagram]
 ⟨d⟩(diagram.png)⟨/⟩.
 
@@ -233,6 +297,16 @@ image [image: a small diagram]
 ⟨d⟩### ⟨/⟩⟨bd⟩Third level⟨/⟩
 
 ⟨d⟩#### ⟨/⟩⟨bd⟩Fourth level⟨/⟩
+
+⟨d⟩##### ⟨/⟩⟨bd⟩Fifth level⟨/⟩
+
+⟨d⟩###### ⟨/⟩⟨bd⟩Sixth level⟨/⟩
+
+⟨d⟩## ⟨/⟩⟨b⟩A heading long enough to⟨/⟩
+   ⟨b⟩wrap at the measure, so its⟨/⟩
+   ⟨b⟩second line hangs under the⟨/⟩
+   ⟨b⟩text and not under the⟨/⟩
+   ⟨b⟩markers⟨/⟩
 
 ⟨d⟩## ⟨/⟩⟨b⟩Lists⟨/⟩
 
@@ -247,8 +321,14 @@ image [image: a small diagram]
 10. tenth, so the numbers
     align
 
+1) a parenthesis
+2) as the delimiter
+
 [ ] a task to do
 [x] a task done
+
+1. [ ] a numbered task
+2. [x] and one done
 
 A loose list:
 
@@ -272,7 +352,8 @@ A loose list:
 ⟨d⟩|⟨/⟩
 ⟨d⟩| ⟨/⟩pub fn main(init: std.proces
 ⟨d⟩->⟨/⟩s.Init) !void {
-⟨d⟩| ⟨/⟩    _ = init;
+⟨d⟩| ⟨/⟩    _ = init; // indented wi
+⟨d⟩->⟨/⟩th a tab
 ⟨d⟩| ⟨/⟩}
 
 ⟨d⟩| ⟨/⟩an indented code block
@@ -288,9 +369,23 @@ A loose list:
 ⟨b⟩rendering:⟨/⟩ box lines
 ⟨b⟩since:⟨/⟩ v1
 
-⟨b⟩element:⟨/⟩ math
-⟨b⟩rendering:⟨/⟩ unicode
-⟨b⟩since:⟨/⟩ later
+⟨b⟩element:⟨/⟩ emoji
+⟨b⟩rendering:⟨/⟩ two cells
+⟨b⟩since:⟨/⟩ v1
+
+A table whose longest words do
+not fit side by side is listed
+row by row instead:
+
+⟨b⟩option:⟨/⟩ ⟨d⟩`⟨/⟩⟨34⟩--width⟨/⟩⟨d⟩`⟨/⟩
+⟨b⟩meaning:⟨/⟩ the wrap width, which
+lifts the eighty-column cap
+⟨b⟩default:⟨/⟩ the terminal's
+
+⟨b⟩option:⟨/⟩ ⟨d⟩`⟨/⟩⟨34⟩--paging⟨/⟩⟨d⟩`⟨/⟩
+⟨b⟩meaning:⟨/⟩ ⟨d⟩`⟨/⟩⟨34⟩auto⟨/⟩⟨d⟩`⟨/⟩, ⟨d⟩`⟨/⟩⟨34⟩always⟨/⟩⟨d⟩`⟨/⟩ or
+⟨d⟩`⟨/⟩⟨34⟩never⟨/⟩⟨d⟩`⟨/⟩
+⟨b⟩default:⟨/⟩ ⟨d⟩`⟨/⟩⟨34⟩auto⟨/⟩⟨d⟩`⟨/⟩
 
 ⟨d⟩## ⟨/⟩⟨b⟩Breaks and raw HTML⟨/⟩
 
@@ -322,11 +417,13 @@ like this.
 
 ## Inline
 
-Text can be emphasized, strong, both, struck through, or `code`. Escapes keep
-*literal* stars, and entities such as © & — decode.
+Text can be emphasized, strong, both, struck through with two tildes or one, or
+`code`. Escapes keep *literal* stars, and entities such as © & — decode. Raw
+<kbd>inline html</kbd> is shown as written.
 
 A link with a title (https://commonmark.org), a reference link
-(https://spec.commonmark.org/0.31.2/), an autolink https://ziglang.org, and an
+(https://spec.commonmark.org/0.31.2/), a relative link (manual.md) whose path
+follows it, an autolink https://ziglang.org, an email hello@example.org, and an
 image [image: a small diagram] (diagram.png).
 
 ## Setext heading, level two
@@ -334,6 +431,13 @@ image [image: a small diagram] (diagram.png).
 ### Third level
 
 #### Fourth level
+
+##### Fifth level
+
+###### Sixth level
+
+## A heading long enough to wrap at the measure, so its second line hangs under
+   the text and not under the markers
 
 ## Lists
 
@@ -347,8 +451,14 @@ image [image: a small diagram] (diagram.png).
  9. ninth
 10. tenth, so the numbers align
 
+1) a parenthesis
+2) as the delimiter
+
 ☐ a task to do
 ☑ a task done
+
+1. ☐ a numbered task
+2. ☑ and one done
 
 A loose list:
 
@@ -370,7 +480,7 @@ A loose list:
 │ const std = @import("std");
 │
 │ pub fn main(init: std.process.Init) !void {
-│     _ = init;
+│     _ = init; // indented with a tab
 │ }
 
 │ an indented code block
@@ -383,8 +493,19 @@ A loose list:
 ├─────────┼───────────┼───────┤
 │ heading │   bold    │    v1 │
 │ table   │ box lines │    v1 │
-│ math    │  unicode  │ later │
+│ emoji   │ two cells │    v1 │
 └─────────┴───────────┴───────┘
+
+A table whose longest words do not fit side by side is listed row by row
+instead:
+
+┌────────────┬────────────────────────────────────────────────┬────────────────┐
+│ option     │ meaning                                        │ default        │
+├────────────┼────────────────────────────────────────────────┼────────────────┤
+│ `--width`  │ the wrap width, which lifts the eighty-column  │ the terminal's │
+│            │ cap                                            │                │
+│ `--paging` │ `auto`, `always` or `never`                    │ `auto`         │
+└────────────┴────────────────────────────────────────────────┴────────────────┘
 
 ## Breaks and raw HTML
 
