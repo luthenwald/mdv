@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="712" height="994" viewBox="0 0 712 994" role="img" aria-label="mdv readme.md">
+<svg xmlns="http://www.w3.org/2000/svg" width="712" height="1606" viewBox="0 0 712 1606" role="img" aria-label="mdv readme.md">
 <title>mdv readme.md</title>
 <style>
 svg { --bg: #ffffff; --fg: #24292f; --c0: #24292f; --c1: #b35900; --c2: #0550ae; --c3: #4d2d00; --c4: #0969da; --c5: #8250df; --c6: #1b7c83; --c7: #6e7781; --c8: #57606a; --c9: #8a4600; --c10: #0969da; --c11: #633c01; --c12: #218bff; --c13: #a475f9; --c14: #3192aa; --c15: #8c959f; }
@@ -30,7 +30,7 @@ text { font: 14px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fill
 .c14 { fill: var(--c14); }
 .c15 { fill: var(--c15); }
 </style>
-<rect class="bg" x="0.5" y="0.5" width="711" height="993" rx="12"/>
+<rect class="bg" x="0.5" y="0.5" width="711" height="1605" rx="12"/>
 <text x="20" y="33" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">$</text>
 <text x="36.8" y="33" textLength="109.2" lengthAdjust="spacingAndGlyphs">mdv readme.md</text>
 <text x="20" y="51" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">#</text>
@@ -53,135 +53,187 @@ text { font: 14px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fill
 <text x="20" y="141" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
 <text x="28.4" y="141" textLength="75.6" lengthAdjust="spacingAndGlyphs" class="c4">MDV_PAGER</text>
 <text x="104" y="141" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
-<text x="112.4" y="141" textLength="562.8" lengthAdjust="spacingAndGlyphs">) and a short one is simply printed. Piped output stays plain text,</text>
-<text x="20" y="159" textLength="16.8" lengthAdjust="spacingAndGlyphs">so</text>
-<text x="45.2" y="159" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
-<text x="53.6" y="159" textLength="25.2" lengthAdjust="spacingAndGlyphs" class="c4">mdv</text>
-<text x="78.8" y="159" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
-<text x="95.6" y="159" textLength="109.2" lengthAdjust="spacingAndGlyphs">composes with</text>
-<text x="213.2" y="159" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
-<text x="221.6" y="159" textLength="33.6" lengthAdjust="spacingAndGlyphs" class="c4">head</text>
-<text x="255.2" y="159" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
-<text x="272" y="159" textLength="25.2" lengthAdjust="spacingAndGlyphs">and</text>
-<text x="305.6" y="159" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
-<text x="314" y="159" textLength="33.6" lengthAdjust="spacingAndGlyphs" class="c4">grep</text>
-<text x="347.6" y="159" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
-<text x="364.4" y="159" textLength="193.2" lengthAdjust="spacingAndGlyphs">like any other command.</text>
-<text x="20" y="195" textLength="621.6" lengthAdjust="spacingAndGlyphs">Colors come from your terminal's own theme. mdv sends only text attributes</text>
-<text x="20" y="213" textLength="655.2" lengthAdjust="spacingAndGlyphs">(bold, italic, dim, underline, strikethrough) and, at most, one of the sixteen</text>
-<text x="20" y="231" textLength="630" lengthAdjust="spacingAndGlyphs">palette colors, never a color of its own. Links with a web address are real</text>
-<text x="20" y="249" textLength="655.2" lengthAdjust="spacingAndGlyphs">hyperlinks in terminals that support them; a relative one shows its path after</text>
-<text x="20" y="267" textLength="75.6" lengthAdjust="spacingAndGlyphs">the text.</text>
-<text x="20" y="303" textLength="361.2" lengthAdjust="spacingAndGlyphs">mdv follows CommonMark. Headings keep their</text>
-<text x="389.6" y="303" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
-<text x="398" y="303" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="c4">#</text>
-<text x="406.4" y="303" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
-<text x="423.2" y="303" textLength="226.8" lengthAdjust="spacingAndGlyphs">markers in dim, emphasis is</text>
-<text x="20" y="321" textLength="663.6" lengthAdjust="spacingAndGlyphs">italic and strong text bold, lists and quotes are indented under their markers,</text>
-<text x="20" y="339" textLength="655.2" lengthAdjust="spacingAndGlyphs">and code blocks sit behind a thin gutter without being reflowed. Text wraps by</text>
-<text x="20" y="357" textLength="672" lengthAdjust="spacingAndGlyphs">display width, so wide characters and emoji take the room they really take. From</text>
-<text x="20" y="375" textLength="663.6" lengthAdjust="spacingAndGlyphs">GitHub's dialect it adds strikethrough between tildes, task lists with a box in</text>
-<text x="20" y="393" textLength="663.6" lengthAdjust="spacingAndGlyphs">place of each bullet, and tables drawn in light box lines. A table too wide for</text>
-<text x="20" y="411" textLength="672" lengthAdjust="spacingAndGlyphs">the terminal wraps its longest cells, and when even that would break words, each</text>
-<text x="20" y="429" textLength="310.8" lengthAdjust="spacingAndGlyphs">row is listed as one line per column.</text>
-<text x="20" y="465" textLength="16.8" lengthAdjust="spacingAndGlyphs" class="d">##</text>
-<text x="45.2" y="465" textLength="25.2" lengthAdjust="spacingAndGlyphs" class="b">Use</text>
-<text x="20" y="501" textLength="8.4" lengthAdjust="spacingAndGlyphs">•</text>
-<text x="36.8" y="501" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
-<text x="45.2" y="501" textLength="109.2" lengthAdjust="spacingAndGlyphs" class="c4">mdv README.md</text>
-<text x="154.4" y="501" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
-<text x="171.2" y="501" textLength="126" lengthAdjust="spacingAndGlyphs">renders a file.</text>
-<text x="20" y="519" textLength="8.4" lengthAdjust="spacingAndGlyphs">•</text>
-<text x="36.8" y="519" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
-<text x="45.2" y="519" textLength="151.2" lengthAdjust="spacingAndGlyphs" class="c4">cat notes.md | mdv</text>
-<text x="196.4" y="519" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
-<text x="213.2" y="519" textLength="16.8" lengthAdjust="spacingAndGlyphs">or</text>
-<text x="238.4" y="519" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
-<text x="246.8" y="519" textLength="42" lengthAdjust="spacingAndGlyphs" class="c4">mdv -</text>
-<text x="288.8" y="519" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
-<text x="305.6" y="519" textLength="193.2" lengthAdjust="spacingAndGlyphs">renders standard input.</text>
-<text x="20" y="537" textLength="8.4" lengthAdjust="spacingAndGlyphs">•</text>
-<text x="36.8" y="537" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
-<text x="45.2" y="537" textLength="126" lengthAdjust="spacingAndGlyphs" class="c4">mdv -P notes.md</text>
-<text x="171.2" y="537" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
-<text x="188" y="537" textLength="210" lengthAdjust="spacingAndGlyphs">prints without the pager.</text>
-<text x="20" y="555" textLength="8.4" lengthAdjust="spacingAndGlyphs">•</text>
-<text x="36.8" y="555" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
-<text x="45.2" y="555" textLength="109.2" lengthAdjust="spacingAndGlyphs" class="c4">mdv a.md b.md</text>
-<text x="154.4" y="555" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
-<text x="171.2" y="555" textLength="319.2" lengthAdjust="spacingAndGlyphs">renders both, each headed by its name.</text>
-<text x="20" y="573" textLength="8.4" lengthAdjust="spacingAndGlyphs">•</text>
-<text x="36.8" y="573" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
-<text x="45.2" y="573" textLength="193.2" lengthAdjust="spacingAndGlyphs" class="c4">mdv --width 60 notes.md</text>
-<text x="238.4" y="573" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
-<text x="255.2" y="573" textLength="168" lengthAdjust="spacingAndGlyphs">wraps at 60 columns;</text>
-<text x="431.6" y="573" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
-<text x="440" y="573" textLength="117.6" lengthAdjust="spacingAndGlyphs" class="c4">--color=always</text>
-<text x="557.6" y="573" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
-<text x="574.4" y="573" textLength="75.6" lengthAdjust="spacingAndGlyphs">keeps the</text>
-<text x="36.8" y="591" textLength="142.8" lengthAdjust="spacingAndGlyphs">styles in a pipe,</text>
-<text x="188" y="591" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
-<text x="196.4" y="591" textLength="109.2" lengthAdjust="spacingAndGlyphs" class="c4">--color=never</text>
-<text x="305.6" y="591" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
-<text x="322.4" y="591" textLength="92.4" lengthAdjust="spacingAndGlyphs">drops them.</text>
+<text x="112.4" y="141" textLength="193.2" lengthAdjust="spacingAndGlyphs">), which you leave with</text>
+<text x="314" y="141" textLength="42" lengthAdjust="spacingAndGlyphs" class="d">&lt;kbd&gt;</text>
+<text x="356" y="141" textLength="8.4" lengthAdjust="spacingAndGlyphs">q</text>
+<text x="364.4" y="141" textLength="50.4" lengthAdjust="spacingAndGlyphs" class="d">&lt;/kbd&gt;</text>
+<text x="414.8" y="141" textLength="226.8" lengthAdjust="spacingAndGlyphs">, and a short one is simply</text>
+<text x="20" y="159" textLength="352.8" lengthAdjust="spacingAndGlyphs">printed. Piped output stays plain text, so</text>
+<text x="381.2" y="159" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
+<text x="389.6" y="159" textLength="25.2" lengthAdjust="spacingAndGlyphs" class="c4">mdv</text>
+<text x="414.8" y="159" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
+<text x="431.6" y="159" textLength="109.2" lengthAdjust="spacingAndGlyphs">composes with</text>
+<text x="549.2" y="159" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
+<text x="557.6" y="159" textLength="33.6" lengthAdjust="spacingAndGlyphs" class="c4">head</text>
+<text x="591.2" y="159" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
+<text x="608" y="159" textLength="25.2" lengthAdjust="spacingAndGlyphs">and</text>
+<text x="641.6" y="159" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
+<text x="650" y="159" textLength="33.6" lengthAdjust="spacingAndGlyphs" class="c4">grep</text>
+<text x="683.6" y="159" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
+<text x="20" y="177" textLength="193.2" lengthAdjust="spacingAndGlyphs">like any other command.</text>
+<text x="20" y="213" textLength="428.4" lengthAdjust="spacingAndGlyphs">[image: This readme as mdv prints it at 80 columns]</text>
+<text x="456.8" y="213" textLength="176.4" lengthAdjust="spacingAndGlyphs" class="d">(examples/readme.svg)</text>
+<text x="20" y="249" textLength="621.6" lengthAdjust="spacingAndGlyphs">Colors come from your terminal's own theme. mdv sends only text attributes</text>
+<text x="20" y="267" textLength="655.2" lengthAdjust="spacingAndGlyphs">(bold, italic, dim, underline, strikethrough) and, at most, one of the sixteen</text>
+<text x="20" y="285" textLength="630" lengthAdjust="spacingAndGlyphs">palette colors, never a color of its own. Links with a web address are real</text>
+<text x="20" y="303" textLength="84" lengthAdjust="spacingAndGlyphs" class="u c4">hyperlinks</text>
+<text x="112.4" y="303" textLength="562.8" lengthAdjust="spacingAndGlyphs">in terminals that support them; a relative one shows its path after</text>
+<text x="20" y="321" textLength="75.6" lengthAdjust="spacingAndGlyphs">the text.</text>
+<text x="20" y="357" textLength="92.4" lengthAdjust="spacingAndGlyphs">mdv follows</text>
+<text x="120.8" y="357" textLength="84" lengthAdjust="spacingAndGlyphs" class="u c4">CommonMark</text>
+<text x="204.8" y="357" textLength="176.4" lengthAdjust="spacingAndGlyphs">. Headings keep their</text>
+<text x="389.6" y="357" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
+<text x="398" y="357" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="c4">#</text>
+<text x="406.4" y="357" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
+<text x="423.2" y="357" textLength="126" lengthAdjust="spacingAndGlyphs">markers in dim,</text>
+<text x="557.6" y="357" textLength="67.2" lengthAdjust="spacingAndGlyphs" class="i">emphasis</text>
+<text x="633.2" y="357" textLength="16.8" lengthAdjust="spacingAndGlyphs">is</text>
+<text x="20" y="375" textLength="84" lengthAdjust="spacingAndGlyphs">italic and</text>
+<text x="112.4" y="375" textLength="92.4" lengthAdjust="spacingAndGlyphs" class="b">strong text</text>
+<text x="213.2" y="375" textLength="470.4" lengthAdjust="spacingAndGlyphs">bold, lists and quotes are indented under their markers,</text>
+<text x="20" y="393" textLength="655.2" lengthAdjust="spacingAndGlyphs">and code blocks sit behind a thin gutter without being reflowed. Text wraps by</text>
+<text x="20" y="411" textLength="655.2" lengthAdjust="spacingAndGlyphs">display width, so wide characters such as 日本語 and emoji such as 🌿 take the</text>
+<text x="20" y="429" textLength="436.8" lengthAdjust="spacingAndGlyphs">room they really take. From GitHub's dialect it adds</text>
+<text x="465.2" y="429" textLength="109.2" lengthAdjust="spacingAndGlyphs" class="s">strikethrough</text>
+<text x="582.8" y="429" textLength="58.8" lengthAdjust="spacingAndGlyphs">between</text>
+<text x="20" y="447" textLength="672" lengthAdjust="spacingAndGlyphs">tildes, task lists with a box in place of each bullet, and tables drawn in light</text>
+<text x="20" y="465" textLength="655.2" lengthAdjust="spacingAndGlyphs">box lines. A table too wide for the terminal wraps its longest cells, and when</text>
+<text x="20" y="483" textLength="596.4" lengthAdjust="spacingAndGlyphs">even that would break words, each row is listed as one line per column.</text>
+<text x="20" y="519" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">│</text>
+<text x="36.8" y="519" textLength="613.2" lengthAdjust="spacingAndGlyphs">mdv has only been tried on macOS so far. If something looks wrong in your</text>
+<text x="20" y="537" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">│</text>
+<text x="36.8" y="537" textLength="436.8" lengthAdjust="spacingAndGlyphs">terminal on Linux or elsewhere, a report is welcome.</text>
+<text x="20" y="573" textLength="16.8" lengthAdjust="spacingAndGlyphs" class="d">##</text>
+<text x="45.2" y="573" textLength="25.2" lengthAdjust="spacingAndGlyphs" class="b">Use</text>
 <text x="20" y="609" textLength="8.4" lengthAdjust="spacingAndGlyphs">•</text>
 <text x="36.8" y="609" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
-<text x="45.2" y="609" textLength="193.2" lengthAdjust="spacingAndGlyphs" class="c4">mdv --no-links notes.md</text>
-<text x="238.4" y="609" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
-<text x="255.2" y="609" textLength="436.8" lengthAdjust="spacingAndGlyphs">prints each link's address after its text instead of</text>
-<text x="36.8" y="627" textLength="621.6" lengthAdjust="spacingAndGlyphs">making it clickable. Output without styles, such as in a pipe, always does</text>
-<text x="36.8" y="645" textLength="42" lengthAdjust="spacingAndGlyphs">this.</text>
-<text x="20" y="663" textLength="8.4" lengthAdjust="spacingAndGlyphs">•</text>
-<text x="36.8" y="663" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
-<text x="45.2" y="663" textLength="168" lengthAdjust="spacingAndGlyphs" class="c4">mdv --ascii notes.md</text>
-<text x="213.2" y="663" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
-<text x="230" y="663" textLength="436.8" lengthAdjust="spacingAndGlyphs">draws bullets, gutters, rules, boxes and table lines</text>
-<text x="36.8" y="681" textLength="142.8" lengthAdjust="spacingAndGlyphs">with plain ASCII.</text>
-<text x="20" y="717" textLength="25.2" lengthAdjust="spacingAndGlyphs">The</text>
-<text x="53.6" y="717" textLength="50.4" lengthAdjust="spacingAndGlyphs" class="u c4">manual</text>
-<text x="112.4" y="717" textLength="92.4" lengthAdjust="spacingAndGlyphs" class="d">(manual.md)</text>
-<text x="213.2" y="717" textLength="470.4" lengthAdjust="spacingAndGlyphs">describes every option, how each element looks, and what</text>
-<text x="20" y="735" textLength="327.6" lengthAdjust="spacingAndGlyphs">mdv does with paging, colors and width.</text>
-<text x="20" y="771" textLength="16.8" lengthAdjust="spacingAndGlyphs" class="d">##</text>
-<text x="45.2" y="771" textLength="67.2" lengthAdjust="spacingAndGlyphs" class="b">Building</text>
-<text x="20" y="807" textLength="621.6" lengthAdjust="spacingAndGlyphs">mdv builds with Zig 0.17.0 through 0.18.0-dev.954+60635c2bd, a development</text>
-<text x="20" y="825" textLength="352.8" lengthAdjust="spacingAndGlyphs">build, and other versions may not compile.</text>
-<text x="381.2" y="825" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
-<text x="389.6" y="825" textLength="75.6" lengthAdjust="spacingAndGlyphs" class="c4">zig build</text>
-<text x="465.2" y="825" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
-<text x="482" y="825" textLength="193.2" lengthAdjust="spacingAndGlyphs">makes a debug binary in</text>
-<text x="20" y="843" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
-<text x="28.4" y="843" textLength="126" lengthAdjust="spacingAndGlyphs" class="c4">zig-out/bin/mdv</text>
-<text x="154.4" y="843" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
-<text x="162.8" y="843" textLength="8.4" lengthAdjust="spacingAndGlyphs">,</text>
-<text x="179.6" y="843" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
-<text x="188" y="843" textLength="201.6" lengthAdjust="spacingAndGlyphs" class="c4">zig build --release=fast</text>
-<text x="389.6" y="843" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
-<text x="406.4" y="843" textLength="142.8" lengthAdjust="spacingAndGlyphs">an optimized one,</text>
-<text x="20" y="861" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
-<text x="28.4" y="861" textLength="159.6" lengthAdjust="spacingAndGlyphs" class="c4">zig build test spec</text>
-<text x="188" y="861" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
-<text x="204.8" y="861" textLength="159.6" lengthAdjust="spacingAndGlyphs">runs the tests, and</text>
-<text x="372.8" y="861" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
-<text x="381.2" y="861" textLength="176.4" lengthAdjust="spacingAndGlyphs" class="c4">zig build run -- FILE</text>
-<text x="557.6" y="861" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
-<text x="574.4" y="861" textLength="100.8" lengthAdjust="spacingAndGlyphs">runs it from</text>
-<text x="20" y="879" textLength="134.4" lengthAdjust="spacingAndGlyphs">the source tree.</text>
-<text x="162.8" y="879" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
-<text x="171.2" y="879" textLength="352.8" lengthAdjust="spacingAndGlyphs" class="c4">zig build --release=fast --prefix ~/.local</text>
-<text x="524" y="879" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
-<text x="540.8" y="879" textLength="100.8" lengthAdjust="spacingAndGlyphs">installs the</text>
-<text x="20" y="897" textLength="310.8" lengthAdjust="spacingAndGlyphs">optimized binary and the manual under</text>
-<text x="339.2" y="897" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
-<text x="347.6" y="897" textLength="67.2" lengthAdjust="spacingAndGlyphs" class="c4">~/.local</text>
-<text x="414.8" y="897" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
-<text x="423.2" y="897" textLength="252" lengthAdjust="spacingAndGlyphs">, and any other prefix such as</text>
-<text x="20" y="915" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
-<text x="28.4" y="915" textLength="84" lengthAdjust="spacingAndGlyphs" class="c4">/usr/local</text>
-<text x="112.4" y="915" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
-<text x="129.2" y="915" textLength="159.6" lengthAdjust="spacingAndGlyphs">works the same way.</text>
-<text x="20" y="951" textLength="630" lengthAdjust="spacingAndGlyphs">mdv is under the MIT License. It carries a port of commonmark.js and tables</text>
-<text x="20" y="969" textLength="487.2" lengthAdjust="spacingAndGlyphs">generated from Unicode and WHATWG data; their terms are in</text>
-<text x="515.6" y="969" textLength="84" lengthAdjust="spacingAndGlyphs" class="u c4">notices.md</text>
-<text x="599.6" y="969" textLength="8.4" lengthAdjust="spacingAndGlyphs">.</text>
+<text x="45.2" y="609" textLength="109.2" lengthAdjust="spacingAndGlyphs" class="c4">mdv README.md</text>
+<text x="154.4" y="609" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
+<text x="171.2" y="609" textLength="126" lengthAdjust="spacingAndGlyphs">renders a file.</text>
+<text x="20" y="627" textLength="8.4" lengthAdjust="spacingAndGlyphs">•</text>
+<text x="36.8" y="627" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
+<text x="45.2" y="627" textLength="151.2" lengthAdjust="spacingAndGlyphs" class="c4">cat notes.md | mdv</text>
+<text x="196.4" y="627" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
+<text x="213.2" y="627" textLength="16.8" lengthAdjust="spacingAndGlyphs">or</text>
+<text x="238.4" y="627" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
+<text x="246.8" y="627" textLength="42" lengthAdjust="spacingAndGlyphs" class="c4">mdv -</text>
+<text x="288.8" y="627" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
+<text x="305.6" y="627" textLength="193.2" lengthAdjust="spacingAndGlyphs">renders standard input.</text>
+<text x="20" y="645" textLength="8.4" lengthAdjust="spacingAndGlyphs">•</text>
+<text x="36.8" y="645" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
+<text x="45.2" y="645" textLength="109.2" lengthAdjust="spacingAndGlyphs" class="c4">mdv a.md b.md</text>
+<text x="154.4" y="645" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
+<text x="171.2" y="645" textLength="319.2" lengthAdjust="spacingAndGlyphs">renders both, each headed by its name.</text>
+<text x="20" y="681" textLength="25.2" lengthAdjust="spacingAndGlyphs" class="d">###</text>
+<text x="53.6" y="681" textLength="58.8" lengthAdjust="spacingAndGlyphs" class="b d">Options</text>
+<text x="20" y="717" textLength="672" lengthAdjust="spacingAndGlyphs" class="d">┌────────────────────────┬─────────────────────────────────────────────────────┐</text>
+<text x="20" y="735" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">│</text>
+<text x="36.8" y="735" textLength="50.4" lengthAdjust="spacingAndGlyphs" class="b">option</text>
+<text x="230" y="735" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">│</text>
+<text x="246.8" y="735" textLength="50.4" lengthAdjust="spacingAndGlyphs" class="b">effect</text>
+<text x="683.6" y="735" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">│</text>
+<text x="20" y="753" textLength="672" lengthAdjust="spacingAndGlyphs" class="d">├────────────────────────┼─────────────────────────────────────────────────────┤</text>
+<text x="20" y="771" textLength="25.2" lengthAdjust="spacingAndGlyphs" class="d">│ `</text>
+<text x="45.2" y="771" textLength="16.8" lengthAdjust="spacingAndGlyphs" class="c4">-P</text>
+<text x="62" y="771" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
+<text x="230" y="771" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">│</text>
+<text x="246.8" y="771" textLength="201.6" lengthAdjust="spacingAndGlyphs">prints without the pager</text>
+<text x="683.6" y="771" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">│</text>
+<text x="20" y="789" textLength="25.2" lengthAdjust="spacingAndGlyphs" class="d">│ `</text>
+<text x="45.2" y="789" textLength="16.8" lengthAdjust="spacingAndGlyphs" class="c4">-w</text>
+<text x="62" y="789" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
+<text x="70.4" y="789" textLength="8.4" lengthAdjust="spacingAndGlyphs">,</text>
+<text x="87.2" y="789" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
+<text x="95.6" y="789" textLength="75.6" lengthAdjust="spacingAndGlyphs" class="c4">--width N</text>
+<text x="171.2" y="789" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
+<text x="230" y="789" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">│</text>
+<text x="246.8" y="789" textLength="327.6" lengthAdjust="spacingAndGlyphs">wraps at N columns, past 80 if you like</text>
+<text x="683.6" y="789" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">│</text>
+<text x="20" y="807" textLength="25.2" lengthAdjust="spacingAndGlyphs" class="d">│ `</text>
+<text x="45.2" y="807" textLength="168" lengthAdjust="spacingAndGlyphs" class="c4">--color always|never</text>
+<text x="213.2" y="807" textLength="25.2" lengthAdjust="spacingAndGlyphs" class="d">` │</text>
+<text x="246.8" y="807" textLength="344.4" lengthAdjust="spacingAndGlyphs">keeps the styles in a pipe, or drops them</text>
+<text x="683.6" y="807" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">│</text>
+<text x="20" y="825" textLength="25.2" lengthAdjust="spacingAndGlyphs" class="d">│ `</text>
+<text x="45.2" y="825" textLength="84" lengthAdjust="spacingAndGlyphs" class="c4">--no-links</text>
+<text x="129.2" y="825" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
+<text x="230" y="825" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">│</text>
+<text x="246.8" y="825" textLength="378" lengthAdjust="spacingAndGlyphs">prints each link's address after its text, as</text>
+<text x="683.6" y="825" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">│</text>
+<text x="20" y="843" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">│</text>
+<text x="230" y="843" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">│</text>
+<text x="246.8" y="843" textLength="277.2" lengthAdjust="spacingAndGlyphs">output without styles always does</text>
+<text x="683.6" y="843" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">│</text>
+<text x="20" y="861" textLength="25.2" lengthAdjust="spacingAndGlyphs" class="d">│ `</text>
+<text x="45.2" y="861" textLength="58.8" lengthAdjust="spacingAndGlyphs" class="c4">--ascii</text>
+<text x="104" y="861" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
+<text x="230" y="861" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">│</text>
+<text x="246.8" y="861" textLength="386.4" lengthAdjust="spacingAndGlyphs">draws bullets, gutters, rules, boxes and table</text>
+<text x="683.6" y="861" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">│</text>
+<text x="20" y="879" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">│</text>
+<text x="230" y="879" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">│</text>
+<text x="246.8" y="879" textLength="168" lengthAdjust="spacingAndGlyphs">lines in plain ASCII</text>
+<text x="683.6" y="879" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">│</text>
+<text x="20" y="897" textLength="672" lengthAdjust="spacingAndGlyphs" class="d">└────────────────────────┴─────────────────────────────────────────────────────┘</text>
+<text x="20" y="933" textLength="25.2" lengthAdjust="spacingAndGlyphs">The</text>
+<text x="53.6" y="933" textLength="50.4" lengthAdjust="spacingAndGlyphs" class="u c4">manual</text>
+<text x="112.4" y="933" textLength="92.4" lengthAdjust="spacingAndGlyphs" class="d">(manual.md)</text>
+<text x="213.2" y="933" textLength="470.4" lengthAdjust="spacingAndGlyphs">describes every option, how each element looks, and what</text>
+<text x="20" y="951" textLength="327.6" lengthAdjust="spacingAndGlyphs">mdv does with paging, colors and width.</text>
+<text x="20" y="987" textLength="16.8" lengthAdjust="spacingAndGlyphs" class="d">##</text>
+<text x="45.2" y="987" textLength="109.2" lengthAdjust="spacingAndGlyphs" class="b">What it reads</text>
+<text x="20" y="1023" textLength="478.8" lengthAdjust="spacingAndGlyphs">• CommonMark 0.31.2, passing all 652 examples of its spec</text>
+<text x="20" y="1041" textLength="226.8" lengthAdjust="spacingAndGlyphs">• GitHub's additions to it:</text>
+<text x="36.8" y="1059" textLength="67.2" lengthAdjust="spacingAndGlyphs">☑ tables</text>
+<text x="36.8" y="1077" textLength="126" lengthAdjust="spacingAndGlyphs">☑ strikethrough</text>
+<text x="36.8" y="1095" textLength="100.8" lengthAdjust="spacingAndGlyphs">☑ task lists</text>
+<text x="36.8" y="1113" textLength="92.4" lengthAdjust="spacingAndGlyphs">☐ footnotes</text>
+<text x="36.8" y="1131" textLength="243.6" lengthAdjust="spacingAndGlyphs">☐ bare web addresses as links</text>
+<text x="36.8" y="1149" textLength="67.2" lengthAdjust="spacingAndGlyphs">☐ alerts</text>
+<text x="20" y="1185" textLength="16.8" lengthAdjust="spacingAndGlyphs" class="d">##</text>
+<text x="45.2" y="1185" textLength="67.2" lengthAdjust="spacingAndGlyphs" class="b">Building</text>
+<text x="20" y="1221" textLength="621.6" lengthAdjust="spacingAndGlyphs">mdv builds with Zig 0.17.0 through 0.18.0-dev.954+60635c2bd, a development</text>
+<text x="20" y="1239" textLength="352.8" lengthAdjust="spacingAndGlyphs">build, and other versions may not compile.</text>
+<text x="20" y="1275" textLength="126" lengthAdjust="spacingAndGlyphs">1. Get Zig from</text>
+<text x="154.4" y="1275" textLength="243.6" lengthAdjust="spacingAndGlyphs" class="u c4">https://ziglang.org/download/</text>
+<text x="398" y="1275" textLength="8.4" lengthAdjust="spacingAndGlyphs">.</text>
+<text x="20" y="1293" textLength="50.4" lengthAdjust="spacingAndGlyphs">2. Run</text>
+<text x="78.8" y="1293" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
+<text x="87.2" y="1293" textLength="352.8" lengthAdjust="spacingAndGlyphs" class="c4">zig build --release=fast --prefix ~/.local</text>
+<text x="440" y="1293" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
+<text x="448.4" y="1293" textLength="226.8" lengthAdjust="spacingAndGlyphs">, which installs the binary</text>
+<text x="45.2" y="1311" textLength="168" lengthAdjust="spacingAndGlyphs">and the manual under</text>
+<text x="221.6" y="1311" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
+<text x="230" y="1311" textLength="67.2" lengthAdjust="spacingAndGlyphs" class="c4">~/.local</text>
+<text x="297.2" y="1311" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
+<text x="305.6" y="1311" textLength="226.8" lengthAdjust="spacingAndGlyphs">. Any other prefix, such as</text>
+<text x="540.8" y="1311" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
+<text x="549.2" y="1311" textLength="84" lengthAdjust="spacingAndGlyphs" class="c4">/usr/local</text>
+<text x="633.2" y="1311" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
+<text x="641.6" y="1311" textLength="8.4" lengthAdjust="spacingAndGlyphs">,</text>
+<text x="45.2" y="1329" textLength="159.6" lengthAdjust="spacingAndGlyphs">works the same way.</text>
+<text x="20" y="1347" textLength="100.8" lengthAdjust="spacingAndGlyphs">3. Make sure</text>
+<text x="129.2" y="1347" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
+<text x="137.6" y="1347" textLength="100.8" lengthAdjust="spacingAndGlyphs" class="c4">~/.local/bin</text>
+<text x="238.4" y="1347" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
+<text x="255.2" y="1347" textLength="84" lengthAdjust="spacingAndGlyphs">is on your</text>
+<text x="347.6" y="1347" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
+<text x="356" y="1347" textLength="33.6" lengthAdjust="spacingAndGlyphs" class="c4">PATH</text>
+<text x="389.6" y="1347" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">`</text>
+<text x="398" y="1347" textLength="8.4" lengthAdjust="spacingAndGlyphs">.</text>
+<text x="20" y="1383" textLength="176.4" lengthAdjust="spacingAndGlyphs">From the source tree:</text>
+<text x="20" y="1419" textLength="33.6" lengthAdjust="spacingAndGlyphs" class="d">│ sh</text>
+<text x="20" y="1437" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">│</text>
+<text x="36.8" y="1437" textLength="562.8" lengthAdjust="spacingAndGlyphs">zig build                       # a debug binary in zig-out/bin/mdv</text>
+<text x="20" y="1455" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">│</text>
+<text x="36.8" y="1455" textLength="588" lengthAdjust="spacingAndGlyphs">zig build test spec             # the unit tests and the spec examples</text>
+<text x="20" y="1473" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">│</text>
+<text x="36.8" y="1473" textLength="504" lengthAdjust="spacingAndGlyphs">zig build run -- FILE           # runs it without installing</text>
+<text x="20" y="1491" textLength="8.4" lengthAdjust="spacingAndGlyphs" class="d">│</text>
+<text x="36.8" y="1491" textLength="613.2" lengthAdjust="spacingAndGlyphs">zig build golden -- --update    # redraws the picture above, among others</text>
+<text x="20" y="1527" textLength="672" lengthAdjust="spacingAndGlyphs" class="d">────────────────────────────────────────────────────────────────────────────────</text>
+<text x="20" y="1563" textLength="630" lengthAdjust="spacingAndGlyphs">mdv is under the MIT License. It carries a port of commonmark.js and tables</text>
+<text x="20" y="1581" textLength="487.2" lengthAdjust="spacingAndGlyphs">generated from Unicode and WHATWG data; their terms are in</text>
+<text x="515.6" y="1581" textLength="84" lengthAdjust="spacingAndGlyphs" class="u c4">notices.md</text>
+<text x="599.6" y="1581" textLength="8.4" lengthAdjust="spacingAndGlyphs">.</text>
 </svg>
