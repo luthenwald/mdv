@@ -2,7 +2,7 @@
     .name = .mdv,
     .version = "0.0.0",
     .fingerprint = 0x7b9fbcba77f3996,
-    .minimum_zig_version = "0.18.0-dev.861+1a0778dc2",
+    .minimum_zig_version = "0.17.0",
     .dependencies = .{},
     .paths = .{
         "build.zig",
