@@ -26,6 +26,8 @@ pub const Options = struct {
 
 /// Parses `source` into a syntax tree. Everything is allocated in `arena`.
 pub fn parse(arena: Allocator, source: []const u8, options: Options) Allocator.Error!Ast {
+    // Positions are 32 bits, and the text buffer may outgrow the source.
+    std.debug.assert(source.len <= std.math.maxInt(u32) / 4);
     var text = try normalize(arena, source);
     var p: Parser = .{ .arena = arena, .gfm = options.gfm };
     try p.begin();

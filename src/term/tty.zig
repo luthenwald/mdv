@@ -25,18 +25,21 @@ pub const Facts = struct {
     columns: ?u16 = null,
     /// `NO_COLOR` is set and not empty.
     no_color: bool = false,
+    /// `TERM` is `dumb`: a terminal that knows no escapes.
+    dumb: bool = false,
 };
 
 /// The decisions, from the options and what was found about the environment.
 pub fn decide(options: cli.Options, facts: Facts) Terminal {
+    const capable = facts.stdout_is_tty and !facts.dumb;
     const page = switch (options.paging) {
-        .auto => facts.stdout_is_tty,
+        .auto => capable,
         .always => true,
         .never => false,
     };
     // A pager started at a terminal shows the styles, so auto follows stdout either way.
     const styled = switch (options.color) {
-        .auto => facts.stdout_is_tty,
+        .auto => capable,
         .always => true,
         .never => false,
     };
@@ -54,9 +57,15 @@ pub fn gather(io: std.Io, env: *const std.process.Environ.Map) std.Io.Cancelable
     return .{
         .stdout_is_tty = try stdout.isTty(io),
         .measured = try measure(io),
-        .columns = if (env.get("COLUMNS")) |text| std.fmt.parseInt(u16, text, 10) catch null else null,
+        .columns = if (env.get("COLUMNS")) |text| positive(text) else null,
         .no_color = if (env.get("NO_COLOR")) |text| text.len > 0 else false,
+        .dumb = if (env.get("TERM")) |term| std.mem.eql(u8, term, "dumb") else false,
     };
+}
+
+fn positive(text: []const u8) ?u16 {
+    const n = std.fmt.parseInt(u16, text, 10) catch return null;
+    return if (n > 0) n else null;
 }
 
 fn measure(io: std.Io) std.Io.Cancelable!?u16 {
@@ -100,6 +109,20 @@ test "an explicit width lifts the cap" {
 test "NO_COLOR keeps attributes and drops colors" {
     const t = decide(.{}, .{ .stdout_is_tty = true, .no_color = true });
     try testing.expect(t.styled and !t.colors);
+}
+
+test "a dumb terminal gets plain, unpaged output unless asked" {
+    const t = decide(.{}, .{ .stdout_is_tty = true, .dumb = true, .measured = 100 });
+    try testing.expectEqual(Terminal{ .width = 80, .styled = false, .colors = false, .page = false }, t);
+    try testing.expect(decide(.{ .color = .always }, .{ .stdout_is_tty = true, .dumb = true }).styled);
+}
+
+test "COLUMNS must be a positive number" {
+    try testing.expectEqual(50, positive("50"));
+    try testing.expectEqual(null, positive("0"));
+    try testing.expectEqual(null, positive("abc"));
+    try testing.expectEqual(null, positive("-3"));
+    try testing.expectEqual(null, positive("70000"));
 }
 
 test "the flags override what was found" {
