@@ -10,6 +10,7 @@
 - New: tables are drawn in light box lines with a bold header, and each column keeps the alignment its delimiter row asks for. When a table is too wide for the terminal, its longest cells wrap; when even its words would not fit, each row is listed as one line per column.
 - New: text between one or two tildes, as in `~~gone~~`, is struck through.
 - New: task list items show an empty or a checked box where the bullet would be, or after the number in an ordered list.
+- New: front matter between `---` lines at the top of a file is shown as written, in dim, instead of being read as a rule and a heading.
 - New: wide characters and emoji wrap by the columns they take on screen, and text without spaces, such as Chinese or Japanese, breaks between characters.
 - New: control characters and bytes that are not UTF-8 are shown as a replacement mark, so a file cannot change your terminal's state.
 - New: at a terminal the output opens in `less`, which quits by itself when everything fits on one screen. Set `MDV_PAGER` or `PAGER` to use another pager, or pass `-P` to print directly.

@@ -189,7 +189,7 @@ const Layout = struct {
             },
             .thematic_break => try l.line(try l.span(try l.repeat(l.glyphs.rule, l.room()), dim)),
             .code_block => try l.code(n),
-            .html_block => {
+            .html_block, .front_matter => {
                 var rows = std.mem.splitScalar(u8, l.ast.content(n), '\n');
                 while (rows.next()) |row| {
                     try l.hardWrapped(try l.expandTabs(try l.clean(row)), dim, &.{}, &.{});
@@ -1115,6 +1115,10 @@ test "links: hyperlinks when styled, the target in parentheses otherwise" {
 
 test "images show their description and target" {
     try expectLayout("![alt *x*](p.png)", .{ .width = 40, .styled = false }, "[image: alt x] (p.png)");
+}
+
+test "front matter is dim, like raw HTML" {
+    try expectLayout("---\ntitle: x\n---\n\n# x", .{ .width = 20 }, "⟨d⟩---⟨/⟩\n⟨d⟩title: x⟨/⟩\n⟨d⟩---⟨/⟩\n\n⟨d⟩# ⟨/⟩⟨bu⟩x⟨/⟩");
 }
 
 test "raw HTML is dim and control characters are replaced" {

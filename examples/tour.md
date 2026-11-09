@@ -1,6 +1,11 @@
+---
+title: The tour
+tags: [markdown, terminal]
+---
+
 # The tour
 
-This document shows every element mdv supports in its first version. A paragraph runs long enough to wrap at the measure, so you can see how soft breaks
+This document shows every element mdv supports in its first version, starting with the front matter above, which is shown as written. A paragraph runs long enough to wrap at the measure, so you can see how soft breaks
 join into a single flowing line, and how the right edge settles.
 
 A line can end in a hard break\

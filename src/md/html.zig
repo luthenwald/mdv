@@ -132,6 +132,12 @@ const Renderer = struct {
                 try r.lit(ast.content(n));
                 try r.cr();
             },
+            .front_matter => {
+                // Not part of the HTML; shown as a comment for the tests.
+                try r.lit("<!--\n");
+                try r.esc(ast.content(n));
+                try r.lit("\n-->\n");
+            },
             .table => {
                 const rows = ast.children(n);
                 try r.cr();
@@ -302,6 +308,20 @@ test "task list items" {
     // A marker with nothing after it is a task, as cmark-gfm has it.
     // Not tasks: another letter, no space.
     try expectHtml("- [ ]\n- [y] a\n- [x]a\n", "<ul>\n<li><input disabled=\"\" type=\"checkbox\"> </li>\n<li>[y] a</li>\n<li>[x]a</li>\n</ul>\n");
+}
+
+test "front matter is one literal block at the start" {
+    try expectHtml("---\ntitle: x\n---\n# h\n", "<!--\n---\ntitle: x\n---\n-->\n<h1>h</h1>\n");
+    try expectHtml("--- \na: [1]\n...\n\ntext\n", "<!--\n--- \na: [1]\n...\n-->\n<p>text</p>\n");
+    // Unclosed, not at the start, or more than dashes: ordinary markdown.
+    try expectHtml("---\ntitle: x\n", "<hr />\n<p>title: x</p>\n");
+    try expectHtml("\n---\na\n---\n", "<hr />\n<h2>a</h2>\n");
+    try expectHtml("--- a\n---\n", "<h2>--- a</h2>\n");
+    // Off, as for the CommonMark examples.
+    var arena: std.heap.ArenaAllocator = .init(testing.allocator);
+    defer arena.deinit();
+    const ast = try @import("block.zig").parse(arena.allocator(), "---\na\n---\n", .{ .front_matter = false });
+    try testing.expectEqual(Ast.Node.Tag.thematic_break, ast.tag(ast.children(0)[0]));
 }
 
 test "a tight list in a quote" {

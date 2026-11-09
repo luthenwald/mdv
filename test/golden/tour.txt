@@ -1,9 +1,15 @@
 -- width 80
+⟨d⟩---⟨/⟩
+⟨d⟩title: The tour⟨/⟩
+⟨d⟩tags: [markdown, terminal]⟨/⟩
+⟨d⟩---⟨/⟩
+
 ⟨d⟩# ⟨/⟩⟨bu⟩The tour⟨/⟩
 
-This document shows every element mdv supports in its first version. A paragraph
-runs long enough to wrap at the measure, so you can see how soft breaks join
-into a single flowing line, and how the right edge settles.
+This document shows every element mdv supports in its first version, starting
+with the front matter above, which is shown as written. A paragraph runs long
+enough to wrap at the measure, so you can see how soft breaks join into a single
+flowing line, and how the right edge settles.
 
 A line can end in a hard break
 like this one, or with two trailing spaces
@@ -83,14 +89,21 @@ A loose list:
 Wide characters wrap by display width: 日本語のテキスト, and emoji 🌿 count as
 two columns.
 -- width 40
+⟨d⟩---⟨/⟩
+⟨d⟩title: The tour⟨/⟩
+⟨d⟩tags: [markdown, terminal]⟨/⟩
+⟨d⟩---⟨/⟩
+
 ⟨d⟩# ⟨/⟩⟨bu⟩The tour⟨/⟩
 
 This document shows every element mdv
-supports in its first version. A
-paragraph runs long enough to wrap at
-the measure, so you can see how soft
-breaks join into a single flowing line,
-and how the right edge settles.
+supports in its first version, starting
+with the front matter above, which is
+shown as written. A paragraph runs long
+enough to wrap at the measure, so you
+can see how soft breaks join into a
+single flowing line, and how the right
+edge settles.
 
 A line can end in a hard break
 like this one, or with two trailing
@@ -177,16 +190,24 @@ Wide characters wrap by display width:
 日本語のテキスト, and emoji 🌿 count as
 two columns.
 -- width 30, ascii
+⟨d⟩---⟨/⟩
+⟨d⟩title: The tour⟨/⟩
+⟨d⟩tags: [markdown, terminal]⟨/⟩
+⟨d⟩---⟨/⟩
+
 ⟨d⟩# ⟨/⟩⟨bu⟩The tour⟨/⟩
 
 This document shows every
 element mdv supports in its
-first version. A paragraph
-runs long enough to wrap at
-the measure, so you can see
-how soft breaks join into a
-single flowing line, and how
-the right edge settles.
+first version, starting with
+the front matter above, which
+is shown as written. A
+paragraph runs long enough to
+wrap at the measure, so you
+can see how soft breaks join
+into a single flowing line,
+and how the right edge
+settles.
 
 A line can end in a hard break
 like this one, or with two
@@ -283,11 +304,17 @@ display width: 日本語のテキス
 ト, and emoji 🌿 count as two
 columns.
 -- width 80, no styles
+---
+title: The tour
+tags: [markdown, terminal]
+---
+
 # The tour
 
-This document shows every element mdv supports in its first version. A paragraph
-runs long enough to wrap at the measure, so you can see how soft breaks join
-into a single flowing line, and how the right edge settles.
+This document shows every element mdv supports in its first version, starting
+with the front matter above, which is shown as written. A paragraph runs long
+enough to wrap at the measure, so you can see how soft breaks join into a single
+flowing line, and how the right edge settles.
 
 A line can end in a hard break
 like this one, or with two trailing spaces

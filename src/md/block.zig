@@ -19,13 +19,22 @@ pub const Options = struct {
     /// The extensions of GitHub Flavored Markdown in v1: tables,
     /// strikethrough and task list items.
     gfm: bool = true,
+    /// A YAML block between `---` lines at the very start of the document
+    /// is front matter, kept as one literal block and not markdown.
+    front_matter: bool = true,
 };
 
 /// Parses `source` into a syntax tree. Everything is allocated in `arena`.
 pub fn parse(arena: Allocator, source: []const u8, options: Options) Allocator.Error!Ast {
-    const text = try normalize(arena, source);
+    var text = try normalize(arena, source);
     var p: Parser = .{ .arena = arena, .gfm = options.gfm };
     try p.begin();
+    if (options.front_matter) {
+        if (frontMatter(text)) |end| {
+            try p.frontMatter(text[0..end]);
+            text = text[end..];
+        }
+    }
     var lines = std.mem.splitScalar(u8, text, '\n');
     while (lines.next()) |line| {
         // A final line ending does not start another line.
@@ -63,6 +72,25 @@ pub fn parse(arena: Allocator, source: []const u8, options: Options) Allocator.E
         .links = p.links.items,
         .definitions = p.definitions.items,
     };
+}
+
+/// The end of a front matter block at the start of `text`: `---` alone on
+/// the first line, then a line that is `---` or `...`, as YAML closes a
+/// document. Returns the offset after the closing line's ending.
+fn frontMatter(text: []const u8) ?usize {
+    if (!std.mem.startsWith(u8, text, "---")) return null;
+    var i: usize = 3;
+    // Spaces may follow the opening dashes, nothing else.
+    while (i < text.len and text[i] == ' ') i += 1;
+    if (i >= text.len or text[i] != '\n') return null;
+    var lines = std.mem.splitScalar(u8, text[i + 1 ..], '\n');
+    while (lines.next()) |line| {
+        const trimmed = std.mem.trimEnd(u8, line, " ");
+        if (std.mem.eql(u8, trimmed, "---") or std.mem.eql(u8, trimmed, "...")) {
+            return if (lines.index) |next| i + 1 + next else text.len;
+        }
+    }
+    return null;
 }
 
 /// Line endings become `\n`, and NUL becomes U+FFFD.
@@ -167,6 +195,17 @@ const Parser = struct {
     fn appendFlags(p: *Parser) !void {
         try p.blank_end.append(p.arena, false);
         try p.tail_blank.append(p.arena, false);
+    }
+
+    /// The front matter block, `block` being its lines with their fences
+    /// and line endings, as the document's first child.
+    fn frontMatter(p: *Parser, block: []const u8) !void {
+        const content = std.mem.trimEnd(u8, block, "\n");
+        const start: u32 = @intCast(p.text.items.len);
+        try p.text.appendSlice(p.arena, content);
+        const node = try p.newNode(.front_matter, .{ .literal = .{ .start = start, .len = @intCast(content.len) } });
+        try p.children.append(p.arena, node);
+        p.settled += 1;
     }
 
     /// Brings `stops` up to date for the tip and its parent, the only open

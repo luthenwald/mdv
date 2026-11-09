@@ -72,7 +72,7 @@ pub fn main(init: std.process.Init) !u8 {
         };
         for (if (gfm) extensions else examples) |ex| if (ex.example == number) {
             try out.print("example {d}, {s}\n\n-- markdown\n{s}-- expected\n{s}-- actual\n{s}", .{
-                ex.example, ex.section, ex.markdown, ex.html, try render(arena, ex.markdown, .{ .gfm = gfm }),
+                ex.example, ex.section, ex.markdown, ex.html, try render(arena, ex.markdown, .{ .gfm = gfm, .front_matter = false }),
             });
             return 0;
         };
@@ -80,14 +80,14 @@ pub fn main(init: std.process.Init) !u8 {
         return 2;
     }
 
-    const commonmark = try tally(arena, out, examples, .{ .gfm = false });
+    const commonmark = try tally(arena, out, examples, .{ .gfm = false, .front_matter = false });
     try out.print("\n{d}/{d} pass\n\n", .{ commonmark, examples.len });
-    const gfm = try tally(arena, out, extensions, .{});
+    const gfm = try tally(arena, out, extensions, .{ .front_matter = false });
     try out.print("\n{d}/{d} pass with the extensions\n", .{ gfm, extensions.len });
 
     var differ: std.ArrayList(u32) = .empty;
     for (examples) |ex| {
-        if (!std.mem.eql(u8, try render(arena, ex.markdown, .{}), ex.html)) try differ.append(arena, ex.example);
+        if (!std.mem.eql(u8, try render(arena, ex.markdown, .{ .front_matter = false }), ex.html)) try differ.append(arena, ex.example);
     }
     if (differ.items.len > 0) {
         try out.print("\nwith the extensions on, {d}/{d} CommonMark examples read differently:", .{ differ.items.len, examples.len });

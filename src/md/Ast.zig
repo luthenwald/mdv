@@ -45,6 +45,8 @@ pub const Node = struct {
         table,
         table_row,
         table_cell,
+        /// A YAML block between `---` lines at the start, kept as written.
+        front_matter,
         // Inlines, inside paragraphs and headings.
         text,
         soft_break,
@@ -81,7 +83,8 @@ pub const Node = struct {
         parent: Parent,
         /// `code_block`.
         code: Code,
-        /// In `text`: `html_block`, `text`, `code_span` and `html_inline`.
+        /// In `text`: `html_block`, `front_matter`, `text`, `code_span` and
+        /// `html_inline`.
         literal: Range,
         /// `thematic_break`, `soft_break` and `hard_break`.
         none: void,
@@ -152,7 +155,7 @@ pub fn children(ast: Ast, node: Index) []const Index {
 pub fn content(ast: Ast, node: Index) []const u8 {
     const range = switch (ast.tag(node)) {
         .code_block => ast.data(node).code.content,
-        .html_block, .text, .code_span, .html_inline => ast.data(node).literal,
+        .html_block, .front_matter, .text, .code_span, .html_inline => ast.data(node).literal,
         else => unreachable,
     };
     return range.of(u8, ast.text);

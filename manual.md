@@ -39,6 +39,8 @@ Links are blue and underlined. In terminals that support hyperlinks they are cli
 
 Raw HTML is shown as it is written, in dim.
 
+Front matter, a block between `---` lines at the very start of the file (the second line may also be `...`), is shown as written, in dim, and is not read as markdown. Many notes and blog posts carry their title and tags this way.
+
 Quotes and lists nested more than 32 levels deep keep the 32 levels of bars and markers they have and show the rest of their content at that depth, since more would fill the line anyway.
 
 ## Width and wrapping
