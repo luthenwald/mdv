@@ -50,13 +50,14 @@ pub const Node = struct {
         html_inline,
         emphasis,
         strong,
+        strikethrough,
         link,
         image,
 
         pub fn hasChildren(t: Tag) bool {
             return switch (t) {
                 .document, .block_quote, .list, .list_item, .paragraph, .heading => true,
-                .emphasis, .strong, .link, .image => true,
+                .emphasis, .strong, .strikethrough, .link, .image => true,
                 else => false,
             };
         }

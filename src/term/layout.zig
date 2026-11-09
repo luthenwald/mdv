@@ -285,6 +285,11 @@ const Layout = struct {
                 s.bold = true;
                 try l.inlines(out, n, s, link);
             },
+            .strikethrough => {
+                var s = style;
+                s.strike = true;
+                try l.inlines(out, n, s, link);
+            },
             .link => {
                 const destination = ast.string(ast.link(n).destination);
                 const hyper = l.options.styled and !l.options.no_links and destination.len > 0;
@@ -527,7 +532,7 @@ fn expectLayout(markdown: []const u8, options: Options, expected: []const u8) !v
     var arena: std.heap.ArenaAllocator = .init(testing.allocator);
     defer arena.deinit();
     const a = arena.allocator();
-    const lines = try document(a, try md.parse(a, markdown), options);
+    const lines = try document(a, try md.parse(a, markdown, .{}), options);
     var out: std.Io.Writer.Allocating = .init(a);
     const w = &out.writer;
     for (lines, 0..) |row, i| {
@@ -603,6 +608,7 @@ test "headings keep dim markers and hang their continuation" {
 
 test "emphasis, strong and code" {
     try expectLayout("*a* **b** `c d`", .{ .width = 20 }, "⟨i⟩a⟨/⟩ ⟨b⟩b⟨/⟩ ⟨d⟩`⟨/⟩⟨c⟩c d⟨/⟩⟨d⟩`⟨/⟩");
+    try expectLayout("~~gone~~", .{ .width = 20 }, "⟨s⟩gone⟨/⟩");
 }
 
 test "a quote holding a tight list" {

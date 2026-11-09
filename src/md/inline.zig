@@ -31,6 +31,8 @@ pub const Context = struct {
     links: *std.ArrayList(Ast.Link),
     /// Normalized labels to their links; see `references`.
     refs: *const References = &.empty,
+    /// Strikethrough between one or two tildes.
+    gfm: bool = true,
 };
 
 /// Link reference definitions by normalized label.
@@ -210,6 +212,12 @@ const Parser = struct {
             '\\' => try p.backslash(),
             '`' => try p.backticks(),
             '*', '_' => try p.delimiterRun(),
+            '~' => {
+                const len = p.runLength(p.pos, '~');
+                if (p.c.gfm and len <= 2) return p.delimiterRun();
+                _ = try p.text(p.pos, len);
+                p.pos += len;
+            },
             '[' => {
                 try p.pushBracket(try p.text(p.pos, 1), p.pos + 1, false);
                 p.pos += 1;
@@ -235,7 +243,7 @@ const Parser = struct {
 
     fn isSpecial(c: u8) bool {
         return switch (c) {
-            '\n', '\\', '`', '*', '_', '[', ']', '!', '<', '&' => true,
+            '\n', '\\', '`', '*', '_', '~', '[', ']', '!', '<', '&' => true,
             else => false,
         };
     }
@@ -528,7 +536,7 @@ const Parser = struct {
         // mod 3: no opener at or below this one will match. Delimiters are
         // compared by index, which follows their order on the stack, so the
         // bound holds even after the delimiter it names is removed.
-        var openers_bottom: [2][2][3]u32 = @splat(@splat(@splat(bottom)));
+        var openers_bottom: [3][2][3]u32 = @splat(@splat(@splat(bottom)));
 
         var closer_i = p.delimiter_top;
         if (closer_i == bottom) closer_i = none;
@@ -540,13 +548,23 @@ const Parser = struct {
                 closer_i = closer.next;
                 continue;
             }
-            const floor = &openers_bottom[@intFromBool(closer.char == '*')][@intFromBool(closer.can_open)][closer.original % 3];
+            const char: usize = switch (closer.char) {
+                '_' => 0,
+                '*' => 1,
+                else => 2,
+            };
+            const floor = &openers_bottom[char][@intFromBool(closer.can_open)][closer.original % 3];
             var opener_i = closer.prev;
             const found = while (opener_i != none and (floor.* == none or opener_i > floor.*)) {
                 const opener = ds[opener_i];
-                const odd = (closer.can_open or opener.can_close) and closer.original % 3 != 0 and
-                    (opener.original + closer.original) % 3 == 0;
-                if (opener.char == closer.char and opener.can_open and !odd) break true;
+                // Tildes pair only with a run of the same length; the rule
+                // of three is for `*` and `_`.
+                const fits = if (closer.char == '~')
+                    opener.original == closer.original
+                else
+                    !((closer.can_open or opener.can_close) and closer.original % 3 != 0 and
+                        (opener.original + closer.original) % 3 == 0);
+                if (opener.char == closer.char and opener.can_open and fits) break true;
                 opener_i = opener.prev;
             } else false;
 
@@ -559,7 +577,7 @@ const Parser = struct {
             }
 
             const opener = &ds[opener_i];
-            const use: u32 = if (closer.count >= 2 and opener.count >= 2) 2 else 1;
+            const use: u32 = if (closer.char == '~') closer.count else if (closer.count >= 2 and opener.count >= 2) 2 else 1;
             opener.count -= use;
             closer.count -= use;
             p.literal(opener.item).len -= use;
@@ -567,7 +585,8 @@ const Parser = struct {
 
             const before_closer = p.items.items[closer.item].prev;
             const inner = p.cut(chain, opener.item, before_closer);
-            const emphasis = try p.newItem(if (use == 1) .emphasis else .strong, .{ .parent = .{} });
+            const tag: Tag = if (closer.char == '~') .strikethrough else if (use == 1) .emphasis else .strong;
+            const emphasis = try p.newItem(tag, .{ .parent = .{} });
             p.items.items[emphasis].children = inner;
             p.insertAfter(chain, opener.item, emphasis);
 

@@ -85,7 +85,7 @@ fn lay(arena: std.mem.Allocator, inputs: []const Input, options: layout.Options)
             const header = try arena.dupe(emit.Span, &.{.{ .text = input.name, .style = .{ .dim = true } }});
             try lines.appendSlice(arena, &.{ &.{}, header });
         }
-        try lines.appendSlice(arena, try layout.document(arena, try md.parse(arena, input.text), options));
+        try lines.appendSlice(arena, try layout.document(arena, try md.parse(arena, input.text, .{}), options));
     }
     return lines.items;
 }

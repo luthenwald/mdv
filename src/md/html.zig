@@ -136,6 +136,7 @@ const Renderer = struct {
             .html_inline => try r.lit(ast.content(n)),
             .emphasis => try r.wrap(n, "<em>", "</em>"),
             .strong => try r.wrap(n, "<strong>", "</strong>"),
+            .strikethrough => try r.wrap(n, "<del>", "</del>"),
             .link => {
                 const link = ast.link(n);
                 try r.lit("<a href=\"");
@@ -210,11 +211,16 @@ const testing = std.testing;
 fn expectHtml(markdown: []const u8, expected: []const u8) !void {
     var arena: std.heap.ArenaAllocator = .init(testing.allocator);
     defer arena.deinit();
-    const ast = try @import("block.zig").parse(arena.allocator(), markdown);
+    const ast = try @import("block.zig").parse(arena.allocator(), markdown, .{});
     var out: std.Io.Writer.Allocating = .init(testing.allocator);
     defer out.deinit();
     try render(ast, &out.writer);
     try testing.expectEqualStrings(expected, out.written());
+}
+
+test "strikethrough between one or two tildes" {
+    try expectHtml("~~Hi~~ Hello, ~there~ ~~~not~~~ ~~a~\n", "<p><del>Hi</del> Hello, <del>there</del> ~~~not~~~ ~~a~</p>\n");
+    try expectHtml("This ~~has a\n\nnew paragraph~~.\n", "<p>This ~~has a</p>\n<p>new paragraph~~.</p>\n");
 }
 
 test "a tight list in a quote" {

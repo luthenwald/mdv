@@ -39,7 +39,7 @@ pub fn main(init: std.process.Init) !u8 {
         for (0..runs) |_| {
             var scratch: std.heap.ArenaAllocator = .init(std.heap.page_allocator);
             defer scratch.deinit();
-            _ = try md.parse(scratch.allocator(), source);
+            _ = try md.parse(scratch.allocator(), source, .{});
         }
         const ns = start.untilNow(io, .awake).nanoseconds;
         try out.print("{s}: {d} KB parsed in {d:.2} ms\n", .{ args[3], source.len / 1024, @as(f64, @floatFromInt(ns)) / runs / 1e6 });
@@ -98,7 +98,7 @@ pub fn main(init: std.process.Init) !u8 {
 }
 
 fn render(arena: std.mem.Allocator, markdown: []const u8) ![]const u8 {
-    const ast = try md.parse(arena, markdown);
+    const ast = try md.parse(arena, markdown, .{ .gfm = false });
     var out: std.Io.Writer.Allocating = .init(arena);
     try md.html.render(ast, &out.writer);
     return out.written();

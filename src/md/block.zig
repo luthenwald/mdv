@@ -15,10 +15,16 @@ const inlines = @import("inline.zig");
 const Index = Ast.Index;
 const isSpaceOrTab = scan.isSpaceOrTab;
 
+pub const Options = struct {
+    /// The extensions of GitHub Flavored Markdown in v1: tables,
+    /// strikethrough and task list items.
+    gfm: bool = true,
+};
+
 /// Parses `source` into a syntax tree. Everything is allocated in `arena`.
-pub fn parse(arena: Allocator, source: []const u8) Allocator.Error!Ast {
+pub fn parse(arena: Allocator, source: []const u8, options: Options) Allocator.Error!Ast {
     const text = try normalize(arena, source);
-    var p: Parser = .{ .arena = arena };
+    var p: Parser = .{ .arena = arena, .gfm = options.gfm };
     try p.begin();
     var lines = std.mem.splitScalar(u8, text, '\n');
     while (lines.next()) |line| {
@@ -35,6 +41,7 @@ pub fn parse(arena: Allocator, source: []const u8) Allocator.Error!Ast {
         .extra = &p.extra,
         .text = &p.text,
         .links = &p.links,
+        .gfm = options.gfm,
     };
     var refs: inlines.References = .empty;
     try inlines.references(context, p.definitions.items, &refs);
@@ -101,6 +108,7 @@ const Open = struct {
 
 const Parser = struct {
     arena: Allocator,
+    gfm: bool,
 
     nodes: std.MultiArrayList(Ast.Node) = .empty,
     /// Per node: the last line it held was blank (for list tightness).
@@ -705,7 +713,7 @@ const testing = std.testing;
 fn expectTags(source: []const u8, expected: []const Ast.Node.Tag) !void {
     var arena: std.heap.ArenaAllocator = .init(testing.allocator);
     defer arena.deinit();
-    const ast = try parse(arena.allocator(), source);
+    const ast = try parse(arena.allocator(), source, .{});
     var got: std.ArrayList(Ast.Node.Tag) = .empty;
     try collect(ast, 0, &got, arena.allocator());
     try testing.expectEqualSlices(Ast.Node.Tag, expected, got.items);
@@ -733,7 +741,7 @@ test "headings, breaks and fences" {
 test "a paragraph of definitions disappears" {
     var arena: std.heap.ArenaAllocator = .init(testing.allocator);
     defer arena.deinit();
-    const ast = try parse(arena.allocator(), "[a]: /u 'T'\n[b]:\n  <x y>\ntext\n");
+    const ast = try parse(arena.allocator(), "[a]: /u 'T'\n[b]:\n  <x y>\ntext\n", .{});
     try testing.expectEqual(2, ast.definitions.len);
     try testing.expectEqualStrings("a", ast.string(ast.definitions[0].label));
     try testing.expectEqualStrings("/u", ast.string(ast.definitions[0].destination));
@@ -747,16 +755,16 @@ test "a paragraph of definitions disappears" {
 test "tight and loose lists" {
     var arena: std.heap.ArenaAllocator = .init(testing.allocator);
     defer arena.deinit();
-    const tight = try parse(arena.allocator(), "- a\n- b\n");
+    const tight = try parse(arena.allocator(), "- a\n- b\n", .{});
     try testing.expect(tight.lists[0].tight);
-    const loose = try parse(arena.allocator(), "- a\n\n- b\n");
+    const loose = try parse(arena.allocator(), "- a\n\n- b\n", .{});
     try testing.expect(!loose.lists[0].tight);
 }
 
 test "a tab consumed in part leaves spaces in code" {
     var arena: std.heap.ArenaAllocator = .init(testing.allocator);
     defer arena.deinit();
-    const ast = try parse(arena.allocator(), ">\t\tfoo\n");
+    const ast = try parse(arena.allocator(), ">\t\tfoo\n", .{});
     const code = ast.children(ast.children(0)[0])[0];
     try testing.expectEqualStrings("  foo\n", ast.content(code));
 }
