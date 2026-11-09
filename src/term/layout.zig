@@ -642,34 +642,37 @@ const Layout = struct {
     }
 
     // Text.
-
-    /// The text with control characters replaced, so that a document cannot
-    /// send escapes to the terminal: C0 except tab and line feed, DEL, and C1.
+    /// The text with whatever could act on the terminal replaced: C0
+    /// controls but tab and line feed, DEL, C1 controls, and bytes that are
+    /// not UTF-8, one mark each, since two such bytes from neighbouring text
+    /// could otherwise meet as a C1 control.
     fn clean(l: *Layout, s: []const u8) ![]const u8 {
         var i: usize = 0;
-        const dirty = while (i < s.len) : (i += 1) {
-            if (isControl(s, i)) break true;
+        const dirty = while (i < s.len) {
+            const at = codeAt(s, i);
+            if (!at.safe) break true;
+            i += at.len;
         } else false;
         if (!dirty) return s;
         var out: std.ArrayList(u8) = try .initCapacity(l.arena, s.len);
         i = 0;
         while (i < s.len) {
-            if (isControl(s, i)) {
-                try out.appendSlice(l.arena, l.glyphs.replacement);
-                i += if (s[i] == 0xC2) 2 else 1;
-            } else {
-                try out.append(l.arena, s[i]);
-                i += 1;
-            }
+            const at = codeAt(s, i);
+            try out.appendSlice(l.arena, if (at.safe) s[i..][0..at.len] else l.glyphs.replacement);
+            i += at.len;
         }
         return out.items;
     }
 
-    fn isControl(s: []const u8, i: usize) bool {
+    /// The code point at `i`: its length, or 1 for a byte that is not
+    /// UTF-8, and whether it may reach the terminal.
+    fn codeAt(s: []const u8, i: usize) struct { len: usize, safe: bool } {
         const c = s[i];
-        if (c < 0x20) return c != '\t' and c != '\n';
-        if (c == 0x7f) return true;
-        return c == 0xC2 and i + 1 < s.len and s[i + 1] >= 0x80 and s[i + 1] <= 0x9F;
+        if (c < 0x80) return .{ .len = 1, .safe = (c >= 0x20 or c == '\t' or c == '\n') and c != 0x7f };
+        const n = std.unicode.utf8ByteSequenceLength(c) catch return .{ .len = 1, .safe = false };
+        if (i + n > s.len) return .{ .len = 1, .safe = false };
+        const cp = std.unicode.utf8Decode(s[i..][0..n]) catch return .{ .len = 1, .safe = false };
+        return .{ .len = n, .safe = cp < 0x80 or cp > 0x9f };
     }
 
     /// Tabs to spaces, up to the next multiple of four columns.
@@ -937,12 +940,16 @@ test "wide characters wrap by display width" {
     try expectLayout("日本語 日本語", .{ .width = 7, .styled = false }, "日本語\n日本語");
 }
 
+test "bytes that are not UTF-8 are replaced, so none can meet as a C1 control" {
+    try expectLayout("x\xc2*\x9c*y \xff \xed\xa0\x80 \xc0\xaf", plain, "x\u{FFFD}\u{FFFD}y \u{FFFD} \u{FFFD}\u{FFFD}\u{FFFD} \u{FFFD}\u{FFFD}");
+}
+
 test "lines break between wide characters, minding punctuation" {
     try expectLayout("日本語のテキスト。「引用」です", .{ .width = 10, .styled = false }, "日本語のテ\nキスト。\n「引用」で\nす");
     try expectLayout("text 日本 more", .{ .width = 8, .styled = false }, "text 日\n本 more");
     try expectLayout("🦎🦎🦎", .{ .width = 4, .styled = false }, "🦎🦎\n🦎");
-    try expectLayout("日\xe6\x97", .{ .width = 4, .styled = false }, "日\xe6\x97");
-    try expectLayout("a\xc9\tb", .{ .width = 4, .styled = false }, "a\xc9 b");
+    try expectLayout("日\xe6\x97", .{ .width = 4, .styled = false }, "日\u{FFFD}\u{FFFD}");
+    try expectLayout("a\xc9\tb", .{ .width = 4, .styled = false }, "a\u{FFFD} b");
 }
 
 test "a hard break ends the line" {
