@@ -834,7 +834,8 @@ const Parser = struct {
     }
 
     /// Turns list items whose first paragraph starts with `[ ]`, `[x]` or
-    /// `[X]` and whitespace into task items, the marker cut from the content.
+    /// `[X]` and whitespace, or ends right after the marker, into task
+    /// items, the marker cut from the content.
     fn taskItems(p: *Parser) !void {
         // Which text block holds each paragraph.
         const block_of = try p.arena.alloc(u32, p.nodes.len);
@@ -848,13 +849,13 @@ const Parser = struct {
             if (kids.len == 0 or tags[kids[0]] != .paragraph) continue;
             const content = &p.text_blocks.items[block_of[kids[0]]].content;
             const s = content.of(u8, p.text.items);
-            if (s.len < 4 or s[0] != '[' or s[2] != ']' or !scan.isWhitespace(s[3])) continue;
+            if (s.len < 3 or s[0] != '[' or s[2] != ']' or (s.len > 3 and !scan.isWhitespace(s[3]))) continue;
             const done = switch (s[1]) {
                 ' ', '\t' => false,
                 'x', 'X' => true,
                 else => continue,
             };
-            var skip: u32 = 4;
+            var skip: u32 = 3;
             while (skip < s.len and scan.isWhitespace(s[skip])) skip += 1;
             content.start += skip;
             content.len -= skip;

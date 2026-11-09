@@ -560,13 +560,8 @@ const Parser = struct {
             var opener_i = closer.prev;
             const found = while (opener_i != none and (floor.* == none or opener_i > floor.*)) {
                 const opener = ds[opener_i];
-                // Tildes pair only with a run of the same length; the rule
-                // of three is for `*` and `_`.
-                const fits = if (closer.char == '~')
-                    opener.original == closer.original
-                else
-                    !((closer.can_open or opener.can_close) and closer.original % 3 != 0 and
-                        (opener.original + closer.original) % 3 == 0);
+                const fits = !((closer.can_open or opener.can_close) and closer.original % 3 != 0 and
+                    (opener.original + closer.original) % 3 == 0);
                 if (opener.char == closer.char and opener.can_open and fits) break true;
                 opener_i = opener.prev;
             } else false;
@@ -580,6 +575,22 @@ const Parser = struct {
             }
 
             const opener = &ds[opener_i];
+            if (closer.char == '~' and opener.count != closer.count) {
+                // Tildes pair only in runs of the same length. As in
+                // cmark-gfm, the nearest opener is taken, and when the
+                // lengths differ the delimiters from the opener to the
+                // closer are spent without making anything.
+                const next = closer.next;
+                var d = closer_i;
+                while (d != opener_i) {
+                    const prev = ds[d].prev;
+                    p.removeDelimiter(d);
+                    d = prev;
+                }
+                p.removeDelimiter(opener_i);
+                closer_i = next;
+                continue;
+            }
             const use: u32 = if (closer.char == '~') closer.count else if (closer.count >= 2 and opener.count >= 2) 2 else 1;
             opener.count -= use;
             closer.count -= use;

@@ -282,21 +282,26 @@ pub fn closingTag(s: []const u8, pos: usize) ?usize {
     return i + 1;
 }
 
-/// A link label `[...]` at `pos`: at most 999 characters inside, no unescaped
-/// brackets. Returns the end, after the `]`.
+/// A link label `[...]` at `pos`: at most 999 characters inside, counted
+/// as code points, no unescaped brackets. Returns the end, after the `]`.
 pub fn linkLabel(s: []const u8, pos: usize) ?usize {
     if (pos >= s.len or s[pos] != '[') return null;
+    var chars: usize = 0;
     var i = pos + 1;
     while (i < s.len) : (i += 1) {
-        if (i - pos - 1 > 999) return null;
         switch (s[i]) {
             '\\' => {
-                if (i + 1 < s.len and isEscapable(s[i + 1])) i += 1;
+                chars += 1;
+                if (i + 1 < s.len and isEscapable(s[i + 1])) {
+                    i += 1;
+                    chars += 1;
+                }
             },
             '[' => return null,
             ']' => return i + 1,
-            else => {},
+            else => chars += @intFromBool(s[i] & 0xC0 != 0x80),
         }
+        if (chars > 999) return null;
     }
     return null;
 }
@@ -556,6 +561,14 @@ test "link labels, destinations and titles" {
     try testing.expectEqual(5, linkLabel("[foo]: /u", 0));
     try testing.expectEqual(6, linkLabel("[a\\]b]", 0));
     try testing.expect(linkLabel("[a[b]", 0) == null);
+    // The limit counts characters: 1000 ideographs are 3000 bytes.
+    var wide: [3002]u8 = undefined;
+    wide[0] = '[';
+    for (0..1000) |k| @memcpy(wide[1 + 3 * k ..][0..3], "日");
+    wide[3001] = ']';
+    try testing.expectEqual(null, linkLabel(&wide, 0));
+    wide[2998] = ']';
+    try testing.expectEqual(2999, linkLabel(wide[0..2999], 0));
     const d = linkDestination("<a b> x", 0).?;
     try testing.expectEqualStrings("a b", "<a b> x"[d.start..d.end]);
     const e = linkDestination("/u(r(l)) t", 0).?;

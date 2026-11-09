@@ -274,6 +274,10 @@ test "invalid UTF-8 before a delimiter" {
 test "strikethrough between one or two tildes" {
     try expectHtml("~~Hi~~ Hello, ~there~ ~~~not~~~ ~~a~\n", "<p><del>Hi</del> Hello, <del>there</del> ~~~not~~~ ~~a~</p>\n");
     try expectHtml("This ~~has a\n\nnew paragraph~~.\n", "<p>This ~~has a</p>\n<p>new paragraph~~.</p>\n");
+    // The nearest opener is taken; runs of different lengths spend each
+    // other without pairing, as in cmark-gfm.
+    try expectHtml("~~a~ b~~\n", "<p>~~a~ b~~</p>\n");
+    try expectHtml("~a~~ b~ ~~c~~\n", "<p>~a~~ b~ <del>c</del></p>\n");
 }
 
 test "task list items" {
@@ -295,8 +299,9 @@ test "task list items" {
         \\</ul>
         \\
     );
-    // Not tasks: nothing after the marker, another letter, no space.
-    try expectHtml("- [ ]\n- [y] a\n- [x]a\n", "<ul>\n<li>[ ]</li>\n<li>[y] a</li>\n<li>[x]a</li>\n</ul>\n");
+    // A marker with nothing after it is a task, as cmark-gfm has it.
+    // Not tasks: another letter, no space.
+    try expectHtml("- [ ]\n- [y] a\n- [x]a\n", "<ul>\n<li><input disabled=\"\" type=\"checkbox\"> </li>\n<li>[y] a</li>\n<li>[x]a</li>\n</ul>\n");
 }
 
 test "a tight list in a quote" {
