@@ -132,6 +132,20 @@ const Renderer = struct {
                 try r.lit(ast.content(n));
                 try r.cr();
             },
+            .table => {
+                const rows = ast.children(n);
+                try r.cr();
+                try r.lit("<table>\n<thead>\n");
+                try r.row(rows[0], "th");
+                try r.lit("</thead>\n");
+                if (rows.len > 1) {
+                    try r.lit("<tbody>\n");
+                    for (rows[1..]) |body| try r.row(body, "td");
+                    try r.lit("</tbody>\n");
+                }
+                try r.lit("</table>\n");
+            },
+            .table_row, .table_cell => unreachable,
             .text => try r.esc(ast.content(n)),
             .soft_break => try r.lit("\n"),
             .hard_break => try r.lit("<br />\n"),
@@ -165,6 +179,24 @@ const Renderer = struct {
                 try r.lit(" />");
             },
         }
+    }
+
+    fn row(r: *Renderer, n: Ast.Index, cell: []const u8) !void {
+        try r.lit("<tr>\n");
+        for (r.ast.children(n)) |c| {
+            try r.lit("<");
+            try r.lit(cell);
+            switch (r.ast.alignment(c)) {
+                .none => {},
+                inline else => |a| try r.lit(" align=\"" ++ @tagName(a) ++ "\""),
+            }
+            try r.lit(">");
+            try r.inlines(c);
+            try r.lit("</");
+            try r.lit(cell);
+            try r.lit(">\n");
+        }
+        try r.lit("</tr>\n");
     }
 
     /// As the GFM spec's examples print it.
@@ -278,4 +310,39 @@ test "a loose list starting at 3, code with a language" {
         \\</code></pre>
         \\
     );
+}
+
+test "tables" {
+    try expectHtml("| a | b |\n| :-: | --: |\n| `x \\| y` | z |\nw\n\nafter\n",
+        \\<table>
+        \\<thead>
+        \\<tr>
+        \\<th align="center">a</th>
+        \\<th align="right">b</th>
+        \\</tr>
+        \\</thead>
+        \\<tbody>
+        \\<tr>
+        \\<td align="center"><code>x | y</code></td>
+        \\<td align="right">z</td>
+        \\</tr>
+        \\<tr>
+        \\<td align="center">w</td>
+        \\<td align="right"></td>
+        \\</tr>
+        \\</tbody>
+        \\</table>
+        \\<p>after</p>
+        \\
+    );
+    // After a paragraph and after a definition, with no body rows.
+    try expectHtml("text\na|b\n-|-\n", "<p>text</p>\n<table>\n<thead>\n<tr>\n<th>a</th>\n<th>b</th>\n</tr>\n</thead>\n</table>\n");
+    try expectHtml("[x]: /u\n[x]\n|-\n", "<table>\n<thead>\n<tr>\n<th><a href=\"/u\">x</a></th>\n</tr>\n</thead>\n</table>\n");
+    // A setext underline comes first, as in cmark-gfm, and the header's
+    // cells must match the delimiter row's.
+    try expectHtml("a\n-\n", "<h2>a</h2>\n");
+    try expectHtml("a | b\n--\n", "<h2>a | b</h2>\n");
+    try expectHtml("a | b\n| - | - | - |\n", "<p>a | b\n| - | - | - |</p>\n");
+    // Block starts end a table; extra cells are dropped.
+    try expectHtml("a\n|-\nb | c\n> q\n", "<table>\n<thead>\n<tr>\n<th>a</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>b</td>\n</tr>\n</tbody>\n</table>\n<blockquote>\n<p>q</p>\n</blockquote>\n");
 }

@@ -222,7 +222,7 @@ const Parser = struct {
         for (p.open.items[0 .. depth + 1]) |a| p.blank_end.items[a.node] = last_line_blank;
 
         switch (o.tag) {
-            .paragraph, .code_block, .html_block => {
+            .paragraph, .code_block, .html_block, .table => {
                 try p.addLine();
                 if (o.tag == .html_block and o.html_kind <= 5 and scan.htmlBlockEnd(o.html_kind, p.line[p.offset..])) {
                     try p.finalize();
@@ -243,7 +243,7 @@ const Parser = struct {
         switch (o.tag) {
             .document, .list => return .matched,
             .heading, .thematic_break => return .failed,
-            .paragraph => return if (p.blank) .failed else .matched,
+            .paragraph, .table => return if (p.blank) .failed else .matched,
             .html_block => return if (p.blank and o.html_kind >= 6) .failed else .matched,
             .block_quote => {
                 if (p.indented or p.peek(p.next_nonspace) != '>') return .failed;
@@ -344,7 +344,7 @@ const Parser = struct {
                 if (scan.setextUnderline(rest)) |level| {
                     try p.closeUnmatchedBlocks();
                     const o = p.tip();
-                    _ = try p.takeDefinitions(&o.content_start);
+                    _ = try p.takeDefinitions(&o.content_start, @intCast(p.text.items.len));
                     if (!scan.isBlank(std.mem.trimEnd(u8, p.text.items[o.content_start..], "\n"))) {
                         o.tag = .heading;
                         o.level = level;
@@ -353,6 +353,7 @@ const Parser = struct {
                         return .leaf;
                     }
                 }
+                if (p.gfm and try p.tableStart(rest)) return .leaf;
             }
 
             if (scan.thematicBreak(rest)) {
@@ -536,11 +537,31 @@ const Parser = struct {
         return p.open.items.len - 1;
     }
 
+    /// A table opens when a paragraph's last line is a header row and this
+    /// line a delimiter row with as many cells. The lines before the header
+    /// stay a paragraph.
+    fn tableStart(p: *Parser, rest: []const u8) !bool {
+        const columns = scan.delimiterRow(rest) orelse return false;
+        const o = p.tip();
+        const body = std.mem.trimEnd(u8, p.text.items[o.content_start..], "\n");
+        const header_at: u32 = if (std.mem.lastIndexOfScalar(u8, body, '\n')) |i| @intCast(i + 1) else 0;
+        if (scan.Cells.count(body[header_at..]) != columns) return false;
+        const header_start = o.content_start + header_at;
+        try p.finalizeTo(header_start);
+        const d = try p.addChild(.table);
+        p.open.items[d].content_start = header_start;
+        return true;
+    }
+
     /// Closes the tip and settles what it holds.
     fn finalize(p: *Parser) !void {
+        return p.finalizeTo(@intCast(p.text.items.len));
+    }
+
+    /// Closes the tip, its content ending at `end` in `text`.
+    fn finalizeTo(p: *Parser, end: u32) !void {
         const o = p.open.pop().?;
         const data = &p.nodes.items(.data)[o.node];
-        const end: u32 = @intCast(p.text.items.len);
         switch (o.tag) {
             .document, .block_quote, .list, .list_item => {
                 const kids = p.children.items[o.children_start..];
@@ -552,10 +573,11 @@ const Parser = struct {
             },
             .paragraph => {
                 var start = o.content_start;
-                const had_definitions = try p.takeDefinitions(&start);
+                _ = try p.takeDefinitions(&start, end);
                 const content = p.trimmed(start, end);
-                if (had_definitions and content.len == 0) {
-                    // Only definitions: the paragraph disappears.
+                if (content.len == 0) {
+                    // Only definitions, or nothing before a table's header:
+                    // the paragraph disappears.
                     _ = p.children.pop();
                     return;
                 }
@@ -599,8 +621,86 @@ const Parser = struct {
                 }
                 data.* = .{ .literal = .{ .start = o.content_start, .len = stop - o.content_start } };
             },
+            .table => try p.finalizeTable(o, end),
             else => unreachable,
         }
+    }
+
+    /// The header row, the delimiter row, then the body rows, each row with
+    /// the header's number of cells.
+    fn finalizeTable(p: *Parser, o: Open, end: u32) !void {
+        var lines: std.ArrayList([2]u32) = .empty;
+        var at = o.content_start;
+        while (at < end) {
+            const stop: u32 = @intCast(std.mem.indexOfScalarPos(u8, p.text.items[0..end], at, '\n') orelse end);
+            try lines.append(p.arena, .{ at, stop });
+            at = stop + 1;
+        }
+
+        var alignments: std.ArrayList(Ast.Alignment) = .empty;
+        const delimiter = p.text.items[lines.items[1][0]..lines.items[1][1]];
+        var marks = scan.Cells.init(delimiter);
+        while (marks.next()) |c| {
+            const cell = delimiter[c[0]..c[1]];
+            const left = cell[0] == ':';
+            const right = cell[cell.len - 1] == ':';
+            try alignments.append(p.arena, if (left and right) .center else if (right) .right else if (left) .left else .none);
+        }
+
+        var rows: std.ArrayList(Index) = .empty;
+        var ranges: std.ArrayList([2]u32) = .empty;
+        var cells: std.ArrayList(Index) = .empty;
+        for (lines.items, 0..) |line, i| {
+            if (i == 1) continue;
+            // Cell ranges first: unescaping pipes appends to `text`.
+            ranges.clearRetainingCapacity();
+            var it = scan.Cells.init(p.text.items[line[0]..line[1]]);
+            while (ranges.items.len < alignments.items.len) {
+                const c = it.next() orelse break;
+                try ranges.append(p.arena, .{ line[0] + @as(u32, @intCast(c[0])), line[0] + @as(u32, @intCast(c[1])) });
+            }
+            cells.clearRetainingCapacity();
+            for (alignments.items, 0..) |alignment, column| {
+                const content: Ast.Range = if (column < ranges.items.len)
+                    try p.unescapePipes(ranges.items[column][0], ranges.items[column][1])
+                else
+                    .{};
+                const cell = try p.newNode(.table_cell, .{ .parent = .{ .index = @backingInt(alignment) } });
+                try p.text_blocks.append(p.arena, .{ .node = cell, .content = content });
+                try cells.append(p.arena, cell);
+            }
+            try rows.append(p.arena, try p.newNode(.table_row, .{ .parent = .{ .children = try p.run(cells.items) } }));
+        }
+        p.nodes.items(.data)[o.node] = .{ .parent = .{ .children = try p.run(rows.items) } };
+    }
+
+    /// The range, with `\\|` turned into `|`: copied into `text` when it has any.
+    fn unescapePipes(p: *Parser, start: u32, end: u32) !Ast.Range {
+        if (std.mem.indexOf(u8, p.text.items[start..end], "\\|") == null) return .{ .start = start, .len = end - start };
+        const out: u32 = @intCast(p.text.items.len);
+        try p.text.ensureUnusedCapacity(p.arena, end - start);
+        var i = start;
+        while (i < end) : (i += 1) {
+            const c = p.text.items[i];
+            if (c == '\\' and i + 1 < end and p.text.items[i + 1] == '|') continue;
+            p.text.appendAssumeCapacity(c);
+        }
+        return .{ .start = out, .len = @as(u32, @intCast(p.text.items.len)) - out };
+    }
+
+    /// A node made outside the open blocks, such as a table's rows and cells.
+    fn newNode(p: *Parser, tag: Ast.Node.Tag, data: Ast.Node.Data) !Index {
+        const node: Index = @intCast(p.nodes.len);
+        try p.nodes.append(p.arena, .{ .tag = tag, .data = data });
+        try p.blank_end.append(p.arena, false);
+        return node;
+    }
+
+    /// Appends a run of nodes to `extra`.
+    fn run(p: *Parser, nodes: []const Index) !Ast.Range {
+        const start: u32 = @intCast(p.extra.items.len);
+        try p.extra.appendSlice(p.arena, nodes);
+        return .{ .start = start, .len = @intCast(nodes.len) };
     }
 
     fn trimmed(p: *const Parser, start: u32, end: u32) Ast.Range {
@@ -673,10 +773,10 @@ const Parser = struct {
 
     /// Takes link reference definitions from the start of a paragraph's
     /// content, moving `start` past them. Returns whether there were any.
-    fn takeDefinitions(p: *Parser, start: *u32) !bool {
+    fn takeDefinitions(p: *Parser, start: *u32, end: u32) !bool {
         var any = false;
         while (true) {
-            const s = p.text.items[start.*..];
+            const s = p.text.items[start.*..end];
             if (s.len == 0 or s[0] != '[') break;
             const d = definition(s) orelse break;
             const base = start.*;

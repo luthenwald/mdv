@@ -42,6 +42,9 @@ pub const Node = struct {
         thematic_break,
         code_block,
         html_block,
+        table,
+        table_row,
+        table_cell,
         // Inlines, inside paragraphs and headings.
         text,
         soft_break,
@@ -57,6 +60,7 @@ pub const Node = struct {
         pub fn hasChildren(t: Tag) bool {
             return switch (t) {
                 .document, .block_quote, .list, .list_item, .paragraph, .heading => true,
+                .table, .table_row, .table_cell => true,
                 .emphasis, .strong, .strikethrough, .link, .image => true,
                 else => false,
             };
@@ -87,8 +91,9 @@ pub const Node = struct {
         /// Node indices in `extra`.
         children: Range = .{},
         /// A list's index in `lists`, a heading's level (1 to 6), a link's
-        /// or image's index in `links`, or for a list item 1 when it is an
-        /// open task and 2 when it is a done one.
+        /// or image's index in `links`, for a list item 1 when it is an
+        /// open task and 2 when it is a done one, or a table cell's
+        /// `Alignment`. A table's first row is its header.
         index: u32 = 0,
     };
 
@@ -101,6 +106,8 @@ pub const Node = struct {
         fenced: bool = false,
     };
 };
+
+pub const Alignment = enum(u2) { none, left, center, right };
 
 pub const List = struct {
     ordered: bool,
@@ -166,6 +173,11 @@ pub fn level(ast: Ast, node: Index) u8 {
 pub fn list(ast: Ast, node: Index) List {
     std.debug.assert(ast.tag(node) == .list);
     return ast.lists[ast.data(node).parent.index];
+}
+
+pub fn alignment(ast: Ast, node: Index) Alignment {
+    std.debug.assert(ast.tag(node) == .table_cell);
+    return @fromBackingInt(@intCast(ast.data(node).parent.index));
 }
 
 /// Whether a task item is done, or null for an ordinary list item.

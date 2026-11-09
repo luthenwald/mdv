@@ -42,7 +42,7 @@ pub fn spaceAndNewline(s: []const u8, pos: usize) usize {
 pub fn maybeSpecial(s: []const u8) bool {
     if (s.len == 0) return false;
     return switch (s[0]) {
-        '#', '`', '~', '*', '+', '_', '=', '<', '>', '-', '0'...'9' => true,
+        '#', '`', '~', '*', '+', '_', '=', '<', '>', '-', '0'...'9', '|', ':' => true,
         else => false,
     };
 }
@@ -367,6 +367,75 @@ pub fn linkTitle(s: []const u8, pos: usize) ?Part {
     return null;
 }
 
+/// The cells of a table row: the line trimmed, without a leading pipe or an
+/// unescaped trailing one, split at unescaped pipes. A backslash takes the
+/// byte after it along, so `\\|` stays inside a cell. A row without
+/// content still has one empty cell.
+pub const Cells = struct {
+    line: []const u8,
+    pos: usize,
+    end: usize,
+    done: bool = false,
+
+    pub fn init(line: []const u8) Cells {
+        var start: usize = 0;
+        var end = line.len;
+        while (start < end and isWhitespace(line[start])) start += 1;
+        while (end > start and isWhitespace(line[end - 1])) end -= 1;
+        if (start < end and line[start] == '|') start += 1;
+        if (end > start and line[end - 1] == '|' and !isEscaped(line, end - 1, start)) end -= 1;
+        return .{ .line = line, .pos = start, .end = end };
+    }
+
+    /// The next cell, trimmed, as offsets into the line.
+    pub fn next(c: *Cells) ?[2]usize {
+        if (c.done) return null;
+        var i = c.pos;
+        while (i < c.end and c.line[i] != '|') : (i += 1) {
+            if (c.line[i] == '\\' and i + 1 < c.end) i += 1;
+        }
+        var a = c.pos;
+        var b = i;
+        while (a < b and isWhitespace(c.line[a])) a += 1;
+        while (b > a and isWhitespace(c.line[b - 1])) b -= 1;
+        if (i >= c.end) c.done = true else c.pos = i + 1;
+        return .{ a, b };
+    }
+
+    pub fn count(line: []const u8) usize {
+        var cells = init(line);
+        var n: usize = 0;
+        while (cells.next()) |_| n += 1;
+        return n;
+    }
+};
+
+/// Whether the byte at `i` follows an odd number of backslashes.
+fn isEscaped(s: []const u8, i: usize, start: usize) bool {
+    var j = i;
+    while (j > start and s[j - 1] == '\\') j -= 1;
+    return (i - j) % 2 == 1;
+}
+
+/// A table's delimiter row, such as `| :-- | :-: |`: every cell is dashes
+/// with an optional colon at either end. Returns the number of columns.
+pub fn delimiterRow(line: []const u8) ?usize {
+    var cells = Cells.init(line);
+    var n: usize = 0;
+    while (cells.next()) |c| {
+        const cell = line[c[0]..c[1]];
+        var i: usize = 0;
+        if (i < cell.len and cell[i] == ':') i += 1;
+        const dashes = i;
+        while (i < cell.len and cell[i] == '-') i += 1;
+        if (i == dashes) return null;
+        if (i < cell.len and cell[i] == ':') i += 1;
+        if (i != cell.len) return null;
+        n += 1;
+    }
+    return n;
+}
+
 pub const Autolink = struct {
     /// Past the `>`.
     end: usize,
@@ -499,4 +568,25 @@ test autolink {
     try testing.expectEqual(null, autolink("<http://a b>", 0));
     try testing.expectEqual(null, autolink("<foo@-bar>", 0));
     try testing.expectEqual(null, autolink("<foo@bar->", 0));
+}
+
+test Cells {
+    const line = " | a | b \\| c |` d \\\\|";
+    var cells = Cells.init(line);
+    try testing.expectEqualStrings("a", line[cells.next().?[0]..][0..1]);
+    const second = cells.next().?;
+    try testing.expectEqualStrings("b \\| c", line[second[0]..second[1]]);
+    const third = cells.next().?;
+    try testing.expectEqualStrings("` d \\\\", line[third[0]..third[1]]);
+    try testing.expectEqual(null, cells.next());
+    try testing.expectEqual(1, Cells.count("|"));
+    try testing.expectEqual(2, Cells.count("a | b"));
+}
+
+test delimiterRow {
+    try testing.expectEqual(2, delimiterRow("| --- | :-: |"));
+    try testing.expectEqual(1, delimiterRow(":-"));
+    try testing.expectEqual(2, delimiterRow("-|-"));
+    try testing.expectEqual(null, delimiterRow("| --- | x |"));
+    try testing.expectEqual(null, delimiterRow("| :: |"));
 }
