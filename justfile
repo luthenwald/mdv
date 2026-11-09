@@ -22,6 +22,10 @@ pathological *args:
 golden *args:
    zig build golden -- {{args}}
 
+# Fuzzes the parser and the layout for the given number of runs, such as `just fuzz 1M`.
+fuzz runs="100K":
+   zig build test --fuzz={{runs}}
+
 # Runs mdv with the given arguments, such as `just run examples/tour.md`.
 run *args:
    zig build run -- {{args}}

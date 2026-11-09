@@ -1104,3 +1104,46 @@ test "raw HTML is dim and control characters are replaced" {
     try expectLayout("a <b>x</b>\x1b[31m", .{ .width = 40 }, "a ⟨d⟩<b>⟨/⟩x⟨d⟩</b>⟨/⟩\u{FFFD}[31m");
     try expectLayout("<div>\n  x\n</div>", .{ .width = 20 }, "⟨d⟩<div>⟨/⟩\n⟨d⟩  x⟨/⟩\n⟨d⟩</div>⟨/⟩");
 }
+
+test "any input lays out without sending control characters" {
+    try testing.fuzz({}, struct {
+        fn one(_: void, smith: *testing.Smith) anyerror!void {
+            var buf: [4096]u8 = undefined;
+            const source = buf[0..smith.slice(&buf)];
+            var arena: std.heap.ArenaAllocator = .init(testing.allocator);
+            defer arena.deinit();
+            const a = arena.allocator();
+            const ast = try md.parse(a, source, .{});
+            for ([_]u16{ 1, 7, 30, 80 }) |w| for ([_]bool{ false, true }) |ascii| {
+                const lines = try document(a, ast, .{ .width = w, .ascii = ascii });
+                var out: std.Io.Writer.Allocating = .init(a);
+                const emitter: emit.Emitter = .{ .styled = true, .colors = true };
+                for (lines) |row| try emitter.line(&out.writer, row);
+                try expectOnlyOurEscapes(out.written());
+            };
+        }
+    }.one, .{ .corpus = md.fuzz_corpus });
+}
+
+/// No control characters but line feeds and the escapes emit makes: SGR
+/// sequences and OSC 8 hyperlinks.
+fn expectOnlyOurEscapes(bytes: []const u8) !void {
+    var i: usize = 0;
+    while (i < bytes.len) : (i += 1) {
+        const c = bytes[i];
+        if (c == 0x1b) {
+            if (std.mem.startsWith(u8, bytes[i..], "\x1b[")) {
+                const end = std.mem.indexOfScalarPos(u8, bytes, i, 'm') orelse return error.UnendedEscape;
+                for (bytes[i + 2 .. end]) |p| if (!std.ascii.isDigit(p) and p != ';') return error.ForeignEscape;
+                i = end;
+            } else if (std.mem.startsWith(u8, bytes[i..], "\x1b]8;;")) {
+                const end = std.mem.indexOfPos(u8, bytes, i + 5, "\x1b\\") orelse return error.UnendedEscape;
+                for (bytes[i + 5 .. end]) |p| if (p <= ' ' or p >= 0x7f) return error.ForeignEscape;
+                i = end + 1;
+            } else return error.ForeignEscape;
+            continue;
+        }
+        if ((c < 0x20 and c != '\n') or c == 0x7f) return error.ControlCharacter;
+        if (c == 0xc2 and i + 1 < bytes.len and bytes[i + 1] >= 0x80 and bytes[i + 1] <= 0x9f) return error.ControlCharacter;
+    }
+}
