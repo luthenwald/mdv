@@ -94,11 +94,10 @@ pub const Node = struct {
         /// Node indices in `extra`.
         children: Range = .{},
         /// A list's index in `lists`, a heading's level (1 to 6), a link's
-        /// or image's index in `links`, for a list item 1 when it is an
-        /// open task and 2 when it is a done one, or a table cell's
-        /// `Alignment`. A table's first row is its header, and its cells
-        /// give the column count and alignments; a body row may have fewer
-        /// cells, never more.
+        /// or image's index in `links`, a list item's `Task`, or a table
+        /// cell's `Alignment`. A table's first row is its header, and its
+        /// cells give the column count and alignments; a body row may have
+        /// fewer cells, never more.
         index: u32 = 0,
     };
 
@@ -113,6 +112,9 @@ pub const Node = struct {
 };
 
 pub const Alignment = enum(u2) { none, left, center, right };
+
+/// A list item's task state: an ordinary item, `[ ]` or `[x]`.
+pub const Task = enum(u2) { none, open, done };
 
 pub const List = struct {
     ordered: bool,
@@ -188,9 +190,10 @@ pub fn alignment(ast: Ast, node: Index) Alignment {
 /// Whether a task item is done, or null for an ordinary list item.
 pub fn task(ast: Ast, node: Index) ?bool {
     std.debug.assert(ast.tag(node) == .list_item);
-    return switch (ast.data(node).parent.index) {
-        0 => null,
-        else => |i| i == 2,
+    return switch (@as(Task, @fromBackingInt(@intCast(ast.data(node).parent.index)))) {
+        .none => null,
+        .open => false,
+        .done => true,
     };
 }
 

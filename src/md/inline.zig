@@ -82,7 +82,7 @@ pub fn normalizeLabelInto(out: *std.ArrayList(u8), arena: Allocator, raw: []cons
     var i: usize = 0;
     while (i < raw.len) {
         const c = raw[i];
-        if (scan.isWhitespace(c)) {
+        if (scan.isAsciiWhitespace(c)) {
             space = true;
             i += 1;
             continue;
@@ -251,18 +251,18 @@ const Parser = struct {
             '~' => {
                 const len = p.runLength(p.pos, '~');
                 if (p.c.gfm and len <= 2) return p.delimiterRun();
-                _ = try p.text(p.pos, len);
+                _ = try p.addText(p.pos, len);
                 p.pos += len;
             },
             '[' => {
-                try p.pushBracket(try p.text(p.pos, 1), p.pos + 1, false);
+                try p.pushBracket(try p.addText(p.pos, 1), p.pos + 1, false);
                 p.pos += 1;
             },
             '!' => if (p.at(p.pos + 1) == '[') {
-                try p.pushBracket(try p.text(p.pos, 2), p.pos + 2, true);
+                try p.pushBracket(try p.addText(p.pos, 2), p.pos + 2, true);
                 p.pos += 2;
             } else {
-                _ = try p.text(p.pos, 1);
+                _ = try p.addText(p.pos, 1);
                 p.pos += 1;
             },
             ']' => try p.closeBracket(),
@@ -271,7 +271,7 @@ const Parser = struct {
             else => {
                 var i = p.pos + 1;
                 while (i < p.end and !isSpecial(p.c.text.items[i])) i += 1;
-                _ = try p.text(p.pos, i - p.pos);
+                _ = try p.addText(p.pos, i - p.pos);
                 p.pos = i;
             },
         }
@@ -302,7 +302,7 @@ const Parser = struct {
         return i;
     }
 
-    fn text(p: *Parser, start: u32, len: u32) !u32 {
+    fn addText(p: *Parser, start: u32, len: u32) !u32 {
         return p.add(&p.top, .text, .{ .literal = .{ .start = start, .len = len } });
     }
 
@@ -310,7 +310,7 @@ const Parser = struct {
     fn newText(p: *Parser, bytes: []const u8) !u32 {
         const start: u32 = @intCast(p.c.text.items.len);
         try p.c.text.appendSlice(p.c.arena, bytes);
-        return p.text(start, @intCast(bytes.len));
+        return p.addText(start, @intCast(bytes.len));
     }
 
     fn unlink(p: *Parser, chain: *Chain, i: u32) void {
@@ -373,10 +373,10 @@ const Parser = struct {
             _ = try p.add(&p.top, .hard_break, .{ .none = {} });
             p.skipSpaces();
         } else if (p.pos + 1 < p.end and scan.isEscapable(next)) {
-            _ = try p.text(p.pos + 1, 1);
+            _ = try p.addText(p.pos + 1, 1);
             p.pos += 2;
         } else {
-            _ = try p.text(p.pos, 1);
+            _ = try p.addText(p.pos, 1);
             p.pos += 1;
         }
     }
@@ -392,7 +392,7 @@ const Parser = struct {
         const open = p.pos;
         p.pos += len;
         const close = try p.closingBackticks(open, len) orelse {
-            _ = try p.text(open, len);
+            _ = try p.addText(open, len);
             return;
         };
         var r: Range = .{ .start = p.pos, .len = close - p.pos };
@@ -442,7 +442,7 @@ const Parser = struct {
             _ = try p.newText(ref.value);
             p.pos = @intCast(ref.end);
         } else {
-            _ = try p.text(p.pos, 1);
+            _ = try p.addText(p.pos, 1);
             p.pos += 1;
         }
     }
@@ -473,7 +473,7 @@ const Parser = struct {
             _ = try p.add(&p.top, .html_inline, .{ .literal = .{ .start = p.pos, .len = end - p.pos } });
             p.pos = end;
         } else {
-            _ = try p.text(p.pos, 1);
+            _ = try p.addText(p.pos, 1);
             p.pos += 1;
         }
     }
@@ -544,7 +544,7 @@ const Parser = struct {
         const right = b != .whitespace and (b != .punctuation or a != .other);
         const can_open = if (char == '_') left and (!right or b == .punctuation) else left;
         const can_close = if (char == '_') right and (!left or a == .punctuation) else right;
-        const item = try p.text(p.pos, len);
+        const item = try p.addText(p.pos, len);
         p.pos += len;
         if (!can_open and !can_close) return;
         const i: u32 = @intCast(p.delimiters.items.len);
@@ -677,19 +677,19 @@ const Parser = struct {
         const close = p.pos;
         p.pos += 1;
         const opener = p.brackets.getLastOrNull() orelse {
-            _ = try p.text(close, 1);
+            _ = try p.addText(close, 1);
             return;
         };
         if (!opener.image and p.brackets.items.len - 1 < p.link_floor) {
             _ = p.brackets.pop();
-            _ = try p.text(close, 1);
+            _ = try p.addText(close, 1);
             return;
         }
 
         const link = try p.inlineLink() orelse try p.referenceLink(opener, close) orelse {
             _ = p.brackets.pop();
             p.pos = close + 1;
-            _ = try p.text(close, 1);
+            _ = try p.addText(close, 1);
             return;
         };
 

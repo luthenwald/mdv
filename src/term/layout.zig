@@ -217,7 +217,7 @@ const Layout = struct {
                 const marker = try l.arena.alloc(u8, level + 1);
                 @memset(marker[0..level], '#');
                 marker[level] = ' ';
-                try l.push(try l.span(marker, dim), try l.span(spaces(level + 1), .plain));
+                try l.push(try l.span(marker, dim), try l.span(try l.filler(level + 1), .plain));
                 try l.paragraph(n, switch (level) {
                     1 => .{ .bold = true, .underline = true },
                     2 => .{ .bold = true },
@@ -410,11 +410,11 @@ const Layout = struct {
             const box: []const u8 = if (l.ast.task(item)) |done| (if (done) l.glyphs.task_done else l.glyphs.task_open) else "";
             const marker = if (info.ordered) blk: {
                 const number = info.start + i;
-                const pad = spaces(digits - std.fmt.count("{d}", .{number}));
+                const pad = try l.filler(digits - std.fmt.count("{d}", .{number}));
                 const sep = if (box.len > 0) " " else "";
                 break :blk try std.fmt.allocPrint(l.arena, "{s}{d}{c} {s}{s}", .{ pad, number, info.marker, box, sep });
             } else try std.fmt.allocPrint(l.arena, "{s} ", .{if (box.len > 0) box else bullet});
-            try l.push(try l.span(marker, .plain), try l.span(spaces(width.ofString(marker)), .plain));
+            try l.push(try l.span(marker, .plain), try l.span(try l.filler(width.ofString(marker)), .plain));
             if (l.ast.children(item).len == 0) try l.line(&.{}) else try l.children(item, !info.tight);
             l.pop();
         }
@@ -425,7 +425,7 @@ const Layout = struct {
         const mark = try l.span(l.glyphs.wrap, dim);
         const info = l.ast.info(n);
         const language = info[0 .. std.mem.indexOfAny(u8, info, " \t\n") orelse info.len];
-        if (language.len > 0) try l.line(&.{ gutter[0], .{ .text = try l.clean(language), .style = dim } });
+        if (language.len > 0) try l.hardWrapped(try l.clean(language), dim, gutter, mark);
         var content = l.ast.content(n);
         if (std.mem.endsWith(u8, content, "\n")) content = content[0 .. content.len - 1];
         if (content.len == 0 and language.len > 0) return;
@@ -601,20 +601,23 @@ const Layout = struct {
             }
             var start = i;
             var previous: u21 = 0;
+            // Regional indicators pair up into flags; a line may break
+            // only after a complete pair.
+            var indicators: usize = 0;
             while (i < text.len and !isSpace(text[i])) {
-                // Invalid UTF-8 goes a byte at a time, as a replacement, so
+                // A byte that is not UTF-8 goes alone, as a replacement, so
                 // a space after a broken sequence still separates words.
-                const n = std.unicode.utf8ByteSequenceLength(text[i]) catch 1;
-                const decoded: ?u21 = if (i + n <= text.len) std.unicode.utf8Decode(text[i..][0..n]) catch null else null;
-                const len = if (decoded != null) n else 1;
-                const c = decoded orelse 0xFFFD;
-                if (i > start and canBreakBetween(previous, c)) {
+                const char = width.at(text, i);
+                const c = char.code orelse 0xFFFD;
+                const in_flag = isRegionalIndicator(c) and indicators % 2 == 1;
+                if (i > start and !in_flag and canBreakBetween(previous, c)) {
                     try out.append(l.arena, textPiece(text[start..i], style, link));
                     try out.append(l.arena, .{ .kind = .joint, .style = style, .link = link });
                     start = i;
                 }
+                indicators = if (isRegionalIndicator(c)) indicators + 1 else 0;
                 previous = c;
-                i = @min(text.len, i + len);
+                i += char.len;
             }
             try out.append(l.arena, textPiece(text[start..i], style, link));
         }
@@ -720,15 +723,13 @@ const Layout = struct {
         return out.items;
     }
 
-    /// The code point at `i`: its length, or 1 for a byte that is not
-    /// UTF-8, and whether it may reach the terminal.
+    /// The character at `i`, and whether it may reach the terminal: not a
+    /// control character (tab and line feed aside) and valid UTF-8.
     fn codeAt(s: []const u8, i: usize) struct { len: usize, safe: bool } {
-        const c = s[i];
-        if (c < 0x80) return .{ .len = 1, .safe = (c >= 0x20 or c == '\t' or c == '\n') and c != 0x7f };
-        const n = std.unicode.utf8ByteSequenceLength(c) catch return .{ .len = 1, .safe = false };
-        if (i + n > s.len) return .{ .len = 1, .safe = false };
-        const cp = std.unicode.utf8Decode(s[i..][0..n]) catch return .{ .len = 1, .safe = false };
-        return .{ .len = n, .safe = cp < 0x80 or cp > 0x9f };
+        const char = width.at(s, i);
+        const cp = char.code orelse return .{ .len = 1, .safe = false };
+        const control = (cp < 0x20 and cp != '\t' and cp != '\n') or (cp >= 0x7f and cp <= 0x9f);
+        return .{ .len = char.len, .safe = !control };
     }
 
     /// Tabs to spaces, up to the next multiple of four columns.
@@ -792,14 +793,12 @@ fn hasScheme(s: []const u8) bool {
 /// code point, even when that one is wider.
 fn cut(s: []const u8, columns: usize) usize {
     var used: usize = 0;
+    var it: width.Iterator = .{ .s = s };
     var i: usize = 0;
-    while (i < s.len) {
-        const len = std.unicode.utf8ByteSequenceLength(s[i]) catch 1;
-        const end = @min(s.len, i + len);
-        const w = width.ofString(s[i..end]);
-        if (used + w > columns) return if (i == 0) end else i;
-        used += w;
-        i = end;
+    while (it.next()) |step| {
+        if (used + step.width > columns) return if (i == 0) it.i else i;
+        used += step.width;
+        i = it.i;
     }
     return s.len;
 }
@@ -907,6 +906,10 @@ const no_line_start: []const u21 = &.{
 
 const no_line_end: []const u21 = &.{ '（', '［', '｛', '「', '『', '【', '〔', '〈', '《', '〘', '〖', '〝', '(', '[', '{' };
 
+fn isRegionalIndicator(c: u21) bool {
+    return c >= 0x1F1E6 and c <= 0x1F1FF;
+}
+
 /// Quotes and lists nested deeper than this lay out flat.
 const max_depth = 32;
 
@@ -937,10 +940,6 @@ fn trimEnd(spans: []Span) []Span {
 
 const blanks: [256]u8 = @splat(' ');
 
-fn spaces(n: usize) []const u8 {
-    return blanks[0..@min(n, blanks.len)];
-}
-
 const testing = std.testing;
 
 /// Lays out `markdown` and writes the lines in a visible form: styled text
@@ -960,7 +959,7 @@ fn expectLayout(markdown: []const u8, options: Options, expected: []const u8) !v
         for (row) |s| {
             if (merged.items.len > 0) {
                 const last = &merged.items[merged.items.len - 1];
-                if (last.style == s.style and sameLink(last.link, s.link)) {
+                if (last.style == s.style and emit.sameLink(last.link, s.link)) {
                     last.text = try std.mem.concat(a, u8, &.{ last.text, s.text });
                     continue;
                 }
@@ -985,11 +984,6 @@ fn expectLayout(markdown: []const u8, options: Options, expected: []const u8) !v
         }
     }
     try testing.expectEqualStrings(expected, out.written());
-}
-
-fn sameLink(x: ?[]const u8, y: ?[]const u8) bool {
-    if (x == null or y == null) return x == null and y == null;
-    return std.mem.eql(u8, x.?, y.?);
 }
 
 const plain: Options = .{ .width = 20, .styled = false };
@@ -1019,6 +1013,9 @@ test "lines break between wide characters, minding punctuation" {
     try expectLayout("日本語のテキスト。「引用」です", .{ .width = 10, .styled = false }, "日本語のテ\nキスト。\n「引用」で\nす");
     try expectLayout("text 日本 more", .{ .width = 8, .styled = false }, "text 日\n本 more");
     try expectLayout("🦎🦎🦎", .{ .width = 4, .styled = false }, "🦎🦎\n🦎");
+    // A flag's two indicators stay together; a selector widens a heart.
+    try expectLayout("🇯🇵🇫🇷", .{ .width = 6, .styled = false }, "🇯🇵\n🇫🇷");
+    try expectLayout("❤️❤️", .{ .width = 3, .styled = false }, "❤️\n❤️");
     try expectLayout("日\xe6\x97", .{ .width = 4, .styled = false }, "日\u{FFFD}\u{FFFD}");
     try expectLayout("a\xc9\tb", .{ .width = 4, .styled = false }, "a\u{FFFD} b");
 }
@@ -1078,6 +1075,7 @@ test "code keeps its lines, expands tabs and marks a hard wrap" {
         \\│ cccccc
         \\↪ ccccc
     );
+    try expectLayout("```averylonglanguagename\nx\n```", .{ .width = 10, .styled = false }, "│ averylon\n↪ glanguag\n↪ ename\n│ x");
 }
 
 test "a break spans the room inside a quote" {

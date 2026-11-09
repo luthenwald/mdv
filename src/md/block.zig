@@ -132,8 +132,8 @@ const Open = struct {
     fenced: bool = false,
     fence: scan.Fence = .{ .char = 0, .len = 0 },
     fence_offset: usize = 0,
-    /// HTML blocks: which of the seven kinds.
-    html_kind: u8 = 0,
+    /// HTML blocks.
+    html_kind: scan.HtmlKind = .raw,
     /// Headings.
     level: u8 = 0,
 };
@@ -335,7 +335,7 @@ const Parser = struct {
         switch (o.tag) {
             .paragraph, .code_block, .html_block, .table => {
                 try p.addLine();
-                if (o.tag == .html_block and o.html_kind <= 5 and scan.htmlBlockEnd(o.html_kind, p.line[p.offset..])) {
+                if (o.tag == .html_block and o.html_kind.endsOnLine() and scan.htmlBlockEnd(o.html_kind, p.line[p.offset..])) {
                     try p.finalize();
                 }
             },
@@ -357,7 +357,7 @@ const Parser = struct {
             .paragraph => return if (p.blank) .failed else .matched,
             // A row without cells, such as a lone pipe, ends a table.
             .table => return if (p.blank or scan.Cells.count(p.line[p.next_nonspace..]) == 0) .failed else .matched,
-            .html_block => return if (p.blank and o.html_kind >= 6) .failed else .matched,
+            .html_block => return if (p.blank and !o.html_kind.endsOnLine()) .failed else .matched,
             .block_quote => {
                 if (p.indented or p.peek(p.next_nonspace) != '>') return .failed;
                 p.advanceNextNonspace();
@@ -444,7 +444,7 @@ const Parser = struct {
             if (scan.htmlBlockStart(rest)) |kind| {
                 // The seventh kind cannot interrupt a paragraph, not even a lazy one.
                 const lazy = !p.all_closed and !p.blank and p.tip().tag == .paragraph;
-                if (kind < 7 or (container_tag != .paragraph and !lazy)) {
+                if (kind != .other_tag or (container_tag != .paragraph and !lazy)) {
                     try p.closeUnmatchedBlocks();
                     // The spaces before the tag belong to the block.
                     const d = try p.addChild(.html_block);
@@ -849,8 +849,8 @@ const Parser = struct {
     fn trimmed(p: *const Parser, start: u32, end: u32) Ast.Range {
         var a = start;
         var b = end;
-        while (a < b and scan.isWhitespace(p.text.items[a])) a += 1;
-        while (b > a and scan.isWhitespace(p.text.items[b - 1])) b -= 1;
+        while (a < b and scan.isAsciiWhitespace(p.text.items[a])) a += 1;
+        while (b > a and scan.isAsciiWhitespace(p.text.items[b - 1])) b -= 1;
         return .{ .start = a, .len = b - a };
     }
 
@@ -899,17 +899,17 @@ const Parser = struct {
             if (kids.len == 0 or tags[kids[0]] != .paragraph) continue;
             const content = &p.text_blocks.items[block_of[kids[0]]].content;
             const s = content.of(u8, p.text.items);
-            if (s.len < 3 or s[0] != '[' or s[2] != ']' or (s.len > 3 and !scan.isWhitespace(s[3]))) continue;
+            if (s.len < 3 or s[0] != '[' or s[2] != ']' or (s.len > 3 and !scan.isAsciiWhitespace(s[3]))) continue;
             const done = switch (s[1]) {
                 ' ', '\t' => false,
                 'x', 'X' => true,
                 else => continue,
             };
             var skip: u32 = 3;
-            while (skip < s.len and scan.isWhitespace(s[skip])) skip += 1;
+            while (skip < s.len and scan.isAsciiWhitespace(s[skip])) skip += 1;
             content.start += skip;
             content.len -= skip;
-            item.parent.index = if (done) 2 else 1;
+            item.parent.index = @backingInt(@as(Ast.Task, if (done) .done else .open));
         }
     }
 
@@ -946,7 +946,7 @@ const Found = struct {
 fn definition(s: []const u8) ?Found {
     const label_end = scan.linkLabel(s, 0) orelse return null;
     for (s[1 .. label_end - 1]) |c| {
-        if (!scan.isWhitespace(c)) break;
+        if (!scan.isAsciiWhitespace(c)) break;
     } else return null;
     if (label_end >= s.len or s[label_end] != ':') return null;
     const dest = scan.linkDestination(s, scan.spaceAndNewline(s, label_end + 1)) orelse return null;

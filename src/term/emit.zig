@@ -36,7 +36,6 @@ pub const Style = packed struct {
     italic: bool = false,
     underline: bool = false,
     strike: bool = false,
-    reverse: bool = false,
     fg: Color = .default,
 
     pub const plain: Style = .{};
@@ -88,7 +87,7 @@ pub const Emitter = struct {
 const reset = "\x1b[0m";
 const link_close = "\x1b]8;;\x1b\\";
 
-fn sameLink(a: ?[]const u8, b: ?[]const u8) bool {
+pub fn sameLink(a: ?[]const u8, b: ?[]const u8) bool {
     if (a == null or b == null) return a == null and b == null;
     return std.mem.eql(u8, a.?, b.?);
 }
@@ -110,7 +109,6 @@ fn sgr(w: *std.Io.Writer, style: Style) std.Io.Writer.Error!void {
         .{ .on = style.dim, .code = 2 },
         .{ .on = style.italic, .code = 3 },
         .{ .on = style.underline, .code = 4 },
-        .{ .on = style.reverse, .code = 7 },
         .{ .on = style.strike, .code = 9 },
         .{ .on = style.fg != .default, .code = style.fg.code() },
     };
@@ -155,8 +153,8 @@ test "a styled line ends with a reset" {
 }
 
 test "bright colors and the remaining attributes" {
-    const spans = [_]Span{.{ .text = "x", .style = .{ .italic = true, .strike = true, .reverse = true, .fg = .bright_white } }};
-    try expectLine("\x1b[3;7;9;97mx\x1b[0m\n", styled, &spans);
+    const spans = [_]Span{.{ .text = "x", .style = .{ .italic = true, .strike = true, .fg = .bright_white } }};
+    try expectLine("\x1b[3;9;97mx\x1b[0m\n", styled, &spans);
 }
 
 test "without colors the attributes stay" {

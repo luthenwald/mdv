@@ -9,7 +9,7 @@ pub fn isSpaceOrTab(c: u8) bool {
 }
 
 /// Whitespace as the tag and link grammar means it, line endings included.
-pub fn isWhitespace(c: u8) bool {
+pub fn isAsciiWhitespace(c: u8) bool {
     return switch (c) {
         ' ', '\t', '\n', '\r', 0x0b, 0x0c => true,
         else => false,
@@ -47,14 +47,11 @@ pub fn maybeSpecial(s: []const u8) bool {
     };
 }
 
-/// Three or more of the same `*`, `-` or `_`, with only spaces and tabs between and after.
-pub fn thematicBreak(s: []const u8) bool {
-    return thematicBreakScan(s) == null;
-}
-
-/// Null for a thematic break, otherwise where the scan gave up. A scan of
-/// the same line from a later start before that point gives up there too,
-/// since everything in between is the marker or a space.
+/// A thematic break is three or more of the same `*`, `-` or `_`, with only
+/// spaces and tabs between and after. Null for a break, otherwise where
+/// the scan gave up. A scan of the same line from a later start before
+/// that point gives up there too, since everything in between is the
+/// marker or a space.
 pub fn thematicBreakScan(s: []const u8) ?usize {
     if (s.len == 0 or (s[0] != '*' and s[0] != '-' and s[0] != '_')) return 0;
     var count: usize = 0;
@@ -161,22 +158,42 @@ const block_tags = std.StaticStringMap(void).initComptime(.{
 
 const raw_tags = [_][]const u8{ "pre", "script", "style", "textarea" };
 
-/// Which of the seven kinds of HTML block `s` starts, if any. Kind 7 is
-/// reported too; the caller knows whether it may interrupt a paragraph.
-pub fn htmlBlockStart(s: []const u8) ?u8 {
+/// The seven kinds of HTML block, in the spec's order.
+pub const HtmlKind = enum {
+    /// `<pre`, `<script`, `<style` or `<textarea`, until the closing tag.
+    raw,
+    comment,
+    instruction,
+    declaration,
+    cdata,
+    /// A block-level tag name, until a blank line.
+    block_tag,
+    /// Any other complete tag alone on its line, until a blank line.
+    other_tag,
+
+    /// Ends on the line that holds its closer rather than at a blank line.
+    pub fn endsOnLine(k: HtmlKind) bool {
+        return switch (k) {
+            .raw, .comment, .instruction, .declaration, .cdata => true,
+            .block_tag, .other_tag => false,
+        };
+    }
+};
+
+/// Which kind of HTML block `s` starts, if any. `other_tag` is reported
+/// too; the caller knows whether it may interrupt a paragraph.
+pub fn htmlBlockStart(s: []const u8) ?HtmlKind {
     if (s.len < 2 or s[0] != '<') return null;
-    // 1: <pre, <script, <style or <textarea, then whitespace, '>' or the end.
     for (raw_tags) |name| {
         if (std.ascii.startsWithIgnoreCase(s[1..], name)) {
             const rest = s[1 + name.len ..];
-            if (rest.len == 0 or isWhitespace(rest[0]) or rest[0] == '>') return 1;
+            if (rest.len == 0 or isAsciiWhitespace(rest[0]) or rest[0] == '>') return .raw;
         }
     }
-    if (std.mem.startsWith(u8, s, "<!--")) return 2;
-    if (std.mem.startsWith(u8, s, "<?")) return 3;
-    if (std.mem.startsWith(u8, s, "<![CDATA[")) return 5;
-    if (s[1] == '!' and s.len > 2 and std.ascii.isAlphabetic(s[2])) return 4;
-    // 6: a block-level tag name, opening or closing.
+    if (std.mem.startsWith(u8, s, "<!--")) return .comment;
+    if (std.mem.startsWith(u8, s, "<?")) return .instruction;
+    if (std.mem.startsWith(u8, s, "<![CDATA[")) return .cdata;
+    if (s[1] == '!' and s.len > 2 and std.ascii.isAlphabetic(s[2])) return .declaration;
     const name_start: usize = if (s[1] == '/') 2 else 1;
     var name_end = name_start;
     while (name_end < s.len and std.ascii.isAlphanumeric(s[name_end])) name_end += 1;
@@ -185,25 +202,26 @@ pub fn htmlBlockStart(s: []const u8) ?u8 {
         const name = std.ascii.lowerString(&lower, s[name_start..name_end]);
         if (block_tags.has(name)) {
             const rest = s[name_end..];
-            if (rest.len == 0 or isWhitespace(rest[0]) or rest[0] == '>' or
-                std.mem.startsWith(u8, rest, "/>")) return 6;
+            if (rest.len == 0 or isAsciiWhitespace(rest[0]) or rest[0] == '>' or
+                std.mem.startsWith(u8, rest, "/>")) return .block_tag;
         }
     }
-    // 7: one complete open or closing tag, and nothing else on the line.
+    // One complete open or closing tag, and nothing else on the line.
     const end = openTag(s, 0) orelse closingTag(s, 0) orelse return null;
-    for (s[end..]) |c| if (!isWhitespace(c)) return null;
-    return 7;
+    for (s[end..]) |c| if (!isAsciiWhitespace(c)) return null;
+    return .other_tag;
 }
 
-/// Whether `line` ends an HTML block of `kind` (1 to 5; 6 and 7 end at a blank line).
-pub fn htmlBlockEnd(kind: u8, line: []const u8) bool {
+/// Whether `line` ends an HTML block of `kind`; the last two kinds end at
+/// a blank line instead.
+pub fn htmlBlockEnd(kind: HtmlKind, line: []const u8) bool {
     return switch (kind) {
-        1 => closesRawTag(line),
-        2 => std.mem.indexOf(u8, line, "-->") != null,
-        3 => std.mem.indexOf(u8, line, "?>") != null,
-        4 => std.mem.indexOfScalar(u8, line, '>') != null,
-        5 => std.mem.indexOf(u8, line, "]]>") != null,
-        else => false,
+        .raw => closesRawTag(line),
+        .comment => std.mem.indexOf(u8, line, "-->") != null,
+        .instruction => std.mem.indexOf(u8, line, "?>") != null,
+        .declaration => std.mem.indexOfScalar(u8, line, '>') != null,
+        .cdata => std.mem.indexOf(u8, line, "]]>") != null,
+        .block_tag, .other_tag => false,
     };
 }
 
@@ -228,7 +246,7 @@ fn tagName(s: []const u8, pos: usize) ?usize {
 
 fn skipWhitespace(s: []const u8, pos: usize) usize {
     var i = pos;
-    while (i < s.len and isWhitespace(s[i])) i += 1;
+    while (i < s.len and isAsciiWhitespace(s[i])) i += 1;
     return i;
 }
 
@@ -393,8 +411,8 @@ pub const Cells = struct {
     pub fn init(line: []const u8) Cells {
         var start: usize = 0;
         var end = line.len;
-        while (start < end and isWhitespace(line[start])) start += 1;
-        while (end > start and isWhitespace(line[end - 1])) end -= 1;
+        while (start < end and isAsciiWhitespace(line[start])) start += 1;
+        while (end > start and isAsciiWhitespace(line[end - 1])) end -= 1;
         if (start < end and line[start] == '|') start += 1;
         const empty = start == end;
         if (end > start and line[end - 1] == '|' and !(end >= 2 and line[end - 2] == '\\')) end -= 1;
@@ -408,8 +426,8 @@ pub const Cells = struct {
         while (i < c.end and !(c.line[i] == '|' and !(i > 0 and c.line[i - 1] == '\\'))) i += 1;
         var a = c.pos;
         var b = i;
-        while (a < b and isWhitespace(c.line[a])) a += 1;
-        while (b > a and isWhitespace(c.line[b - 1])) b -= 1;
+        while (a < b and isAsciiWhitespace(c.line[a])) a += 1;
+        while (b > a and isAsciiWhitespace(c.line[b - 1])) b -= 1;
         if (i >= c.end) c.done = true else c.pos = i + 1;
         return .{ a, b };
     }
@@ -493,12 +511,12 @@ fn isEmailChar(c: u8) bool {
 const testing = std.testing;
 
 test "thematic breaks" {
-    try testing.expect(thematicBreak("***"));
-    try testing.expect(thematicBreak("- - -"));
-    try testing.expect(thematicBreak("_\t_ _  "));
-    try testing.expect(!thematicBreak("**"));
-    try testing.expect(!thematicBreak("*-*"));
-    try testing.expect(!thematicBreak("--- a"));
+    try testing.expectEqual(null, thematicBreakScan("***"));
+    try testing.expectEqual(null, thematicBreakScan("- - -"));
+    try testing.expectEqual(null, thematicBreakScan("_\t_ _  "));
+    try testing.expect(thematicBreakScan("**") != null);
+    try testing.expect(thematicBreakScan("*-*") != null);
+    try testing.expect(thematicBreakScan("--- a") != null);
     try testing.expectEqual(null, thematicBreakScan("* * *"));
     try testing.expectEqual(4, thematicBreakScan("- - x -"));
     try testing.expectEqual(2, thematicBreakScan("--"));
@@ -534,17 +552,17 @@ test "setext underlines and list markers" {
 }
 
 test "html block kinds" {
-    try testing.expectEqual(1, htmlBlockStart("<pre class=\"x\">"));
-    try testing.expectEqual(2, htmlBlockStart("<!-- c"));
-    try testing.expectEqual(4, htmlBlockStart("<!DOCTYPE html>"));
-    try testing.expectEqual(6, htmlBlockStart("<DIV>"));
-    try testing.expectEqual(6, htmlBlockStart("</table"));
-    try testing.expectEqual(7, htmlBlockStart("<a href=\"foo\">  "));
-    try testing.expectEqual(7, htmlBlockStart("</ins>"));
+    try testing.expectEqual(.raw, htmlBlockStart("<pre class=\"x\">"));
+    try testing.expectEqual(.comment, htmlBlockStart("<!-- c"));
+    try testing.expectEqual(.declaration, htmlBlockStart("<!DOCTYPE html>"));
+    try testing.expectEqual(.block_tag, htmlBlockStart("<DIV>"));
+    try testing.expectEqual(.block_tag, htmlBlockStart("</table"));
+    try testing.expectEqual(.other_tag, htmlBlockStart("<a href=\"foo\">  "));
+    try testing.expectEqual(.other_tag, htmlBlockStart("</ins>"));
     try testing.expect(htmlBlockStart("<a href=\"foo\"> text") == null);
     try testing.expect(htmlBlockStart("<33>") == null);
-    try testing.expect(htmlBlockEnd(1, "x </STYLE> y"));
-    try testing.expect(!htmlBlockEnd(1, "</styles>"));
+    try testing.expect(htmlBlockEnd(.raw, "x </STYLE> y"));
+    try testing.expect(!htmlBlockEnd(.raw, "</styles>"));
 }
 
 test "tags" {
