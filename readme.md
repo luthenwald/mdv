@@ -16,6 +16,8 @@ mdv follows CommonMark. Headings keep their `#` markers in dim, emphasis is ital
 - `mdv --no-links notes.md` prints each link's address after its text instead of making it clickable. Output without styles, such as in a pipe, always does this.
 - `mdv --ascii notes.md` draws bullets, gutters, rules, boxes and table lines with plain ASCII.
 
+The [manual](manual.md) describes every option, how each element looks, and what mdv does with paging, colors and width.
+
 ## Building
 
 You need a development build of Zig 0.18 and `just`. `just build` makes a debug binary in `zig-out/bin/mdv`, `just release` an optimized one, `just test` runs the tests, `just run FILE` runs it from the source tree, and `just install` installs the release binary under `~/.local` (or `just install prefix=/usr/local`).
