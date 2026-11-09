@@ -10,7 +10,7 @@ build:
 test:
    zig build test spec
 
-# Runs the CommonMark examples, or shows one, such as `just spec 42`.
+# Runs the CommonMark and GFM extension examples, or shows one, such as `just spec 42` or `just spec gfm 198`.
 spec *args:
    zig build spec -- {{args}}
 

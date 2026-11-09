@@ -53,8 +53,9 @@ pub fn build(b: *std.Build) void {
     });
     const spec_run = b.addRunArtifact(spec);
     spec_run.addFileArg(b.path("test/spec/spec.json"));
+    spec_run.addFileArg(b.path("test/spec/gfm.txt"));
     spec_run.addPassthruArgs();
-    b.step("spec", "Run the CommonMark examples").dependOn(&spec_run.step);
+    b.step("spec", "Run the CommonMark and GFM extension examples").dependOn(&spec_run.step);
 
     const test_step = b.step("test", "Run the tests");
     test_step.dependOn(&b.addRunArtifact(b.addTest(.{ .root_module = mod })).step);
