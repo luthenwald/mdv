@@ -1,0 +1,13 @@
+-- mdv --help
+usage: mdv [options] [file ...]
+
+renders markdown for the terminal. with no file, or "-", reads standard input.
+
+  -w, --width N                 wrap width (default: terminal, at most 80)
+      --color auto|always|never
+      --paging auto|always|never
+  -P                            same as --paging=never
+      --no-links                no hyperlinks; the url follows the link text
+      --ascii                   ascii glyphs only
+  -h, --help
+      --version

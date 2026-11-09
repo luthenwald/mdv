@@ -1,0 +1,5 @@
+-- mdv --bogus text.md
+-- stderr
+mdv: unknown option --bogus
+try mdv --help
+-- exit 2

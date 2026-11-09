@@ -1,0 +1,96 @@
+-- width 80
+⟨d⟩---⟨/⟩
+⟨d⟩title: Front matter⟨/⟩
+⟨d⟩date: 2026-11-09⟨/⟩
+⟨d⟩tags:⟨/⟩
+⟨d⟩  - one⟨/⟩
+⟨d⟩  - two⟨/⟩
+⟨d⟩description: a line long enough to need hard wrapping at the narrow widths this ⟨/⟩
+⟨d⟩test runs at⟨/⟩
+⟨d⟩---⟨/⟩
+
+⟨d⟩# ⟨/⟩⟨bu⟩After the front matter⟨/⟩
+
+The block above is shown as written, in dim. A second ⟨d⟩`⟨/⟩⟨34⟩---⟨/⟩⟨d⟩`⟨/⟩ here is a rule:
+
+⟨d⟩────────────────────────────────────────────────────────────────────────────────⟨/⟩
+
+And this is not front matter, since it is not at the start:
+
+⟨d⟩────────────────────────────────────────────────────────────────────────────────⟨/⟩
+
+⟨d⟩## ⟨/⟩⟨b⟩key: value⟨/⟩
+-- width 40
+⟨d⟩---⟨/⟩
+⟨d⟩title: Front matter⟨/⟩
+⟨d⟩date: 2026-11-09⟨/⟩
+⟨d⟩tags:⟨/⟩
+⟨d⟩  - one⟨/⟩
+⟨d⟩  - two⟨/⟩
+⟨d⟩description: a line long enough to need ⟨/⟩
+⟨d⟩hard wrapping at the narrow widths this ⟨/⟩
+⟨d⟩test runs at⟨/⟩
+⟨d⟩---⟨/⟩
+
+⟨d⟩# ⟨/⟩⟨bu⟩After the front matter⟨/⟩
+
+The block above is shown as written, in
+dim. A second ⟨d⟩`⟨/⟩⟨34⟩---⟨/⟩⟨d⟩`⟨/⟩ here is a rule:
+
+⟨d⟩────────────────────────────────────────⟨/⟩
+
+And this is not front matter, since it
+is not at the start:
+
+⟨d⟩────────────────────────────────────────⟨/⟩
+
+⟨d⟩## ⟨/⟩⟨b⟩key: value⟨/⟩
+-- width 30, ascii
+⟨d⟩---⟨/⟩
+⟨d⟩title: Front matter⟨/⟩
+⟨d⟩date: 2026-11-09⟨/⟩
+⟨d⟩tags:⟨/⟩
+⟨d⟩  - one⟨/⟩
+⟨d⟩  - two⟨/⟩
+⟨d⟩description: a line long enoug⟨/⟩
+⟨d⟩h to need hard wrapping at the⟨/⟩
+⟨d⟩ narrow widths this test runs ⟨/⟩
+⟨d⟩at⟨/⟩
+⟨d⟩---⟨/⟩
+
+⟨d⟩# ⟨/⟩⟨bu⟩After the front matter⟨/⟩
+
+The block above is shown as
+written, in dim. A second
+⟨d⟩`⟨/⟩⟨34⟩---⟨/⟩⟨d⟩`⟨/⟩ here is a rule:
+
+⟨d⟩------------------------------⟨/⟩
+
+And this is not front matter,
+since it is not at the start:
+
+⟨d⟩------------------------------⟨/⟩
+
+⟨d⟩## ⟨/⟩⟨b⟩key: value⟨/⟩
+-- width 80, no styles
+---
+title: Front matter
+date: 2026-11-09
+tags:
+  - one
+  - two
+description: a line long enough to need hard wrapping at the narrow widths this 
+test runs at
+---
+
+# After the front matter
+
+The block above is shown as written, in dim. A second `---` here is a rule:
+
+────────────────────────────────────────────────────────────────────────────────
+
+And this is not front matter, since it is not at the start:
+
+────────────────────────────────────────────────────────────────────────────────
+
+## key: value

@@ -1,0 +1,5 @@
+-- mdv -w 0 text.md
+-- stderr
+mdv: -w: not a width: 0
+try mdv --help
+-- exit 2

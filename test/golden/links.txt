@@ -1,0 +1,129 @@
+-- width 80
+⟨d⟩# ⟨/⟩⟨bu⟩Links⟨/⟩
+
+A ⟨u34⟩relative path⟨/⟩ ⟨d⟩(docs/manual.md)⟨/⟩, an ⟨u34⟩anchor⟨/⟩ ⟨d⟩(#section)⟨/⟩, a ⟨link https://example.org/path?q=1⟩⟨u34⟩scheme⟨/link⟩⟨/⟩, a ⟨u34⟩bare host⟨/⟩
+⟨d⟩(example.org/no/scheme)⟨/⟩, ⟨link file:///etc/hosts⟩⟨u34⟩file⟨/link⟩⟨/⟩, ⟨link mailto:me@example.org⟩⟨u34⟩mail⟨/link⟩⟨/⟩, and a ⟨link javascript:alert(1)⟩⟨u34⟩javascript one⟨/link⟩⟨/⟩.
+
+An ⟨u34⟩empty destination⟨/⟩ and an ⟨u34⟩angle one⟨/⟩ ⟨d⟩(with space.md)⟨/⟩.
+
+A ⟨u34⟩line break in the destination⟨/⟩ ⟨d⟩(a b)⟨/⟩ and a ⟨u34⟩tab⟨/⟩ ⟨d⟩(a b)⟨/⟩.
+
+A ⟨link data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==⟩⟨u34⟩data URI⟨/link⟩⟨/⟩ and an [image: image with a data URI] ⟨d⟩(data:image/gif;base64,…)⟨/⟩.
+
+An autolink ⟨link https://example.org/auto⟩⟨u34⟩https://example.org/auto⟨/link⟩⟨/⟩, an email ⟨link mailto:someone@example.org⟩⟨u34⟩someone@example.org⟨/link⟩⟨/⟩, and
+⟨link ftp://files.example.org⟩⟨u34⟩ftp://files.example.org⟨/link⟩⟨/⟩.
+
+[image: an image] ⟨d⟩(images/diagram.png)⟨/⟩ and [image: another]
+⟨d⟩(https://example.org/i.png)⟨/⟩.
+
+⟨link https://example.org/reference⟩⟨u34⟩a reference⟨/link⟩⟨/⟩, ⟨link https://example.org/reference⟩⟨u34⟩another⟨/link⟩⟨/⟩ (case-insensitive), ⟨u34⟩a collapsed one⟨/⟩ ⟨d⟩(./here.md)⟨/⟩ and a
+⟨u34⟩shortcut⟨/⟩ ⟨d⟩(/absolute/path)⟨/⟩.
+
+A link whose text is ⟨b⟩strong ⟨link https://example.org/inner⟩⟨/⟩⟨bu34⟩with nested⟨/link⟩⟨/⟩⟨b⟩ text⟨/⟩ stays one link.
+
+A long destination: ⟨link https://example.org/a/very/long/path/that/goes/on/and/on/past/the/end/of/the/line/to/see/how/the/shown/address/wraps⟩⟨u34⟩here⟨/link⟩⟨/⟩.
+-- width 40
+⟨d⟩# ⟨/⟩⟨bu⟩Links⟨/⟩
+
+A ⟨u34⟩relative path⟨/⟩ ⟨d⟩(docs/manual.md)⟨/⟩, an
+⟨u34⟩anchor⟨/⟩ ⟨d⟩(#section)⟨/⟩, a ⟨link https://example.org/path?q=1⟩⟨u34⟩scheme⟨/link⟩⟨/⟩, a ⟨u34⟩bare host⟨/⟩
+⟨d⟩(example.org/no/scheme)⟨/⟩, ⟨link file:///etc/hosts⟩⟨u34⟩file⟨/link⟩⟨/⟩, ⟨link mailto:me@example.org⟩⟨u34⟩mail⟨/link⟩⟨/⟩, and
+a ⟨link javascript:alert(1)⟩⟨u34⟩javascript one⟨/link⟩⟨/⟩.
+
+An ⟨u34⟩empty destination⟨/⟩ and an ⟨u34⟩angle one⟨/⟩
+⟨d⟩(with space.md)⟨/⟩.
+
+A ⟨u34⟩line break in the destination⟨/⟩ ⟨d⟩(a b)⟨/⟩
+and a ⟨u34⟩tab⟨/⟩ ⟨d⟩(a b)⟨/⟩.
+
+A ⟨link data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==⟩⟨u34⟩data URI⟨/link⟩⟨/⟩ and an [image: image with a
+data URI] ⟨d⟩(data:image/gif;base64,…)⟨/⟩.
+
+An autolink ⟨link https://example.org/auto⟩⟨u34⟩https://example.org/auto⟨/link⟩⟨/⟩, an
+email ⟨link mailto:someone@example.org⟩⟨u34⟩someone@example.org⟨/link⟩⟨/⟩, and
+⟨link ftp://files.example.org⟩⟨u34⟩ftp://files.example.org⟨/link⟩⟨/⟩.
+
+[image: an image] ⟨d⟩(images/diagram.png)⟨/⟩
+and [image: another]
+⟨d⟩(https://example.org/i.png)⟨/⟩.
+
+⟨link https://example.org/reference⟩⟨u34⟩a reference⟨/link⟩⟨/⟩, ⟨link https://example.org/reference⟩⟨u34⟩another⟨/link⟩⟨/⟩ (case-insensitive),
+⟨u34⟩a collapsed one⟨/⟩ ⟨d⟩(./here.md)⟨/⟩ and a
+⟨u34⟩shortcut⟨/⟩ ⟨d⟩(/absolute/path)⟨/⟩.
+
+A link whose text is ⟨b⟩strong ⟨link https://example.org/inner⟩⟨/⟩⟨bu34⟩with nested⟨/link⟩⟨/⟩
+⟨b⟩text⟨/⟩ stays one link.
+
+A long destination: ⟨link https://example.org/a/very/long/path/that/goes/on/and/on/past/the/end/of/the/line/to/see/how/the/shown/address/wraps⟩⟨u34⟩here⟨/link⟩⟨/⟩.
+-- width 30, ascii
+⟨d⟩# ⟨/⟩⟨bu⟩Links⟨/⟩
+
+A ⟨u34⟩relative path⟨/⟩
+⟨d⟩(docs/manual.md)⟨/⟩, an ⟨u34⟩anchor⟨/⟩
+⟨d⟩(#section)⟨/⟩, a ⟨link https://example.org/path?q=1⟩⟨u34⟩scheme⟨/link⟩⟨/⟩, a ⟨u34⟩bare⟨/⟩
+⟨u34⟩host⟨/⟩ ⟨d⟩(example.org/no/scheme)⟨/⟩,
+⟨link file:///etc/hosts⟩⟨u34⟩file⟨/link⟩⟨/⟩, ⟨link mailto:me@example.org⟩⟨u34⟩mail⟨/link⟩⟨/⟩, and a ⟨link javascript:alert(1)⟩⟨u34⟩javascript⟨/link⟩⟨/⟩
+⟨link javascript:alert(1)⟩⟨u34⟩one⟨/link⟩⟨/⟩.
+
+An ⟨u34⟩empty destination⟨/⟩ and an
+⟨u34⟩angle one⟨/⟩ ⟨d⟩(with space.md)⟨/⟩.
+
+A ⟨u34⟩line break in the⟨/⟩
+⟨u34⟩destination⟨/⟩ ⟨d⟩(a b)⟨/⟩ and a ⟨u34⟩tab⟨/⟩
+⟨d⟩(a b)⟨/⟩.
+
+A ⟨link data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==⟩⟨u34⟩data URI⟨/link⟩⟨/⟩ and an [image:
+image with a data URI]
+⟨d⟩(data:image/gif;base64,...)⟨/⟩.
+
+An autolink
+⟨link https://example.org/auto⟩⟨u34⟩https://example.org/auto⟨/link⟩⟨/⟩, an
+email ⟨link mailto:someone@example.org⟩⟨u34⟩someone@example.org⟨/link⟩⟨/⟩, and
+⟨link ftp://files.example.org⟩⟨u34⟩ftp://files.example.org⟨/link⟩⟨/⟩.
+
+[image: an image]
+⟨d⟩(images/diagram.png)⟨/⟩ and
+[image: another]
+⟨d⟩(https://example.org/i.png)⟨/⟩.
+
+⟨link https://example.org/reference⟩⟨u34⟩a reference⟨/link⟩⟨/⟩, ⟨link https://example.org/reference⟩⟨u34⟩another⟨/link⟩⟨/⟩
+(case-insensitive), ⟨u34⟩a⟨/⟩
+⟨u34⟩collapsed one⟨/⟩ ⟨d⟩(./here.md)⟨/⟩ and
+a ⟨u34⟩shortcut⟨/⟩ ⟨d⟩(/absolute/path)⟨/⟩.
+
+A link whose text is ⟨b⟩strong⟨/⟩
+⟨link https://example.org/inner⟩⟨bu34⟩with nested⟨/link⟩⟨/⟩⟨b⟩ text⟨/⟩ stays one
+link.
+
+A long destination: ⟨link https://example.org/a/very/long/path/that/goes/on/and/on/past/the/end/of/the/line/to/see/how/the/shown/address/wraps⟩⟨u34⟩here⟨/link⟩⟨/⟩.
+-- width 80, no styles
+# Links
+
+A relative path (docs/manual.md), an anchor (#section), a scheme
+(https://example.org/path?q=1), a bare host (example.org/no/scheme), file
+(file:///etc/hosts), mail (mailto:me@example.org), and a javascript one
+(javascript:alert(1)).
+
+An empty destination and an angle one (with space.md).
+
+A line break in the destination (a b) and a tab (a b).
+
+A data URI (data:image/png;base64,…) and an [image: image with a data URI]
+(data:image/gif;base64,…).
+
+An autolink https://example.org/auto, an email someone@example.org, and
+ftp://files.example.org.
+
+[image: an image] (images/diagram.png) and [image: another]
+(https://example.org/i.png).
+
+a reference (https://example.org/reference), another
+(https://example.org/reference) (case-insensitive), a collapsed one (./here.md)
+and a shortcut (/absolute/path).
+
+A link whose text is strong with nested (https://example.org/inner) text stays
+one link.
+
+A long destination: here
+(https://example.org/a/very/long/path/that/goes/on/and/on/past/the/end/of/the/li
+ne/to/see/how/the/shown/address/wraps).

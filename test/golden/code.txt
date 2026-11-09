@@ -1,0 +1,204 @@
+-- width 80
+⟨d⟩# ⟨/⟩⟨bu⟩Code⟨/⟩
+
+⟨d⟩│ zig⟨/⟩
+⟨d⟩│ ⟨/⟩const std = @import("std");
+⟨d⟩│⟨/⟩
+⟨d⟩│ ⟨/⟩pub fn main() void {
+⟨d⟩│ ⟨/⟩    std.debug.print("a tab indents this line\n", .{});
+⟨d⟩│ ⟨/⟩    std.debug.print("and four spaces this one\n", .{});
+⟨d⟩│ ⟨/⟩}
+
+⟨d⟩│ ⟨/⟩a fence without a language, and a line long enough that it has to be hard-wrap
+⟨d⟩↪ ⟨/⟩ped at every width we test here
+
+⟨d⟩│ ruby⟨/⟩
+⟨d⟩│ ⟨/⟩puts "info string with extra words, only the first shown"
+
+⟨d⟩│ averyveryverylonglanguagenamethatcannotfitthenarrowmeasure⟨/⟩
+⟨d⟩│ ⟨/⟩x
+
+• A list item with code:
+
+  ⟨d⟩│ c⟨/⟩
+  ⟨d⟩│ ⟨/⟩int main(void) { return 0; }
+
+  and an indented block:
+
+  ⟨d⟩│ ⟨/⟩indented, inside the item
+
+1. Numbered, then code:
+
+   ⟨d⟩│ ⟨/⟩second line is longer than the first by quite a bit, to wrap
+
+An indented code block:
+
+⟨d⟩│ ⟨/⟩first line
+⟨d⟩│ ⟨/⟩    deeper
+⟨d⟩│ ⟨/⟩    a tab after four spaces
+
+⟨d⟩│ ⟨/⟩a fence with six backticks holds
+⟨d⟩│ ⟨/⟩```
+⟨d⟩│ ⟨/⟩three inside
+
+⟨d⟩│ ⟨/⟩an unclosed fence runs to the end of the document
+⟨d⟩│⟨/⟩
+⟨d⟩│ ⟨/⟩with a blank line in it
+-- width 40
+⟨d⟩# ⟨/⟩⟨bu⟩Code⟨/⟩
+
+⟨d⟩│ zig⟨/⟩
+⟨d⟩│ ⟨/⟩const std = @import("std");
+⟨d⟩│⟨/⟩
+⟨d⟩│ ⟨/⟩pub fn main() void {
+⟨d⟩│ ⟨/⟩    std.debug.print("a tab indents thi
+⟨d⟩↪ ⟨/⟩s line\n", .{});
+⟨d⟩│ ⟨/⟩    std.debug.print("and four spaces t
+⟨d⟩↪ ⟨/⟩his one\n", .{});
+⟨d⟩│ ⟨/⟩}
+
+⟨d⟩│ ⟨/⟩a fence without a language, and a line
+⟨d⟩↪ ⟨/⟩ long enough that it has to be hard-wr
+⟨d⟩↪ ⟨/⟩apped at every width we test here
+
+⟨d⟩│ ruby⟨/⟩
+⟨d⟩│ ⟨/⟩puts "info string with extra words, on
+⟨d⟩↪ ⟨/⟩ly the first shown"
+
+⟨d⟩│ averyveryverylonglanguagenamethatcanno⟨/⟩
+⟨d⟩↪ tfitthenarrowmeasure⟨/⟩
+⟨d⟩│ ⟨/⟩x
+
+• A list item with code:
+
+  ⟨d⟩│ c⟨/⟩
+  ⟨d⟩│ ⟨/⟩int main(void) { return 0; }
+
+  and an indented block:
+
+  ⟨d⟩│ ⟨/⟩indented, inside the item
+
+1. Numbered, then code:
+
+   ⟨d⟩│ ⟨/⟩second line is longer than the firs
+   ⟨d⟩↪ ⟨/⟩t by quite a bit, to wrap
+
+An indented code block:
+
+⟨d⟩│ ⟨/⟩first line
+⟨d⟩│ ⟨/⟩    deeper
+⟨d⟩│ ⟨/⟩    a tab after four spaces
+
+⟨d⟩│ ⟨/⟩a fence with six backticks holds
+⟨d⟩│ ⟨/⟩```
+⟨d⟩│ ⟨/⟩three inside
+
+⟨d⟩│ ⟨/⟩an unclosed fence runs to the end of t
+⟨d⟩↪ ⟨/⟩he document
+⟨d⟩│⟨/⟩
+⟨d⟩│ ⟨/⟩with a blank line in it
+-- width 30, ascii
+⟨d⟩# ⟨/⟩⟨bu⟩Code⟨/⟩
+
+⟨d⟩| zig⟨/⟩
+⟨d⟩| ⟨/⟩const std = @import("std");
+⟨d⟩|⟨/⟩
+⟨d⟩| ⟨/⟩pub fn main() void {
+⟨d⟩| ⟨/⟩    std.debug.print("a tab i
+⟨d⟩->⟨/⟩ndents this line\n", .{});
+⟨d⟩| ⟨/⟩    std.debug.print("and fou
+⟨d⟩->⟨/⟩r spaces this one\n", .{});
+⟨d⟩| ⟨/⟩}
+
+⟨d⟩| ⟨/⟩a fence without a language, 
+⟨d⟩->⟨/⟩and a line long enough that 
+⟨d⟩->⟨/⟩it has to be hard-wrapped at
+⟨d⟩->⟨/⟩ every width we test here
+
+⟨d⟩| ruby⟨/⟩
+⟨d⟩| ⟨/⟩puts "info string with extra
+⟨d⟩->⟨/⟩ words, only the first shown
+⟨d⟩->⟨/⟩"
+
+⟨d⟩| averyveryverylonglanguagenam⟨/⟩
+⟨d⟩->ethatcannotfitthenarrowmeasu⟨/⟩
+⟨d⟩->re⟨/⟩
+⟨d⟩| ⟨/⟩x
+
+* A list item with code:
+
+  ⟨d⟩| c⟨/⟩
+  ⟨d⟩| ⟨/⟩int main(void) { return 0;
+  ⟨d⟩->⟨/⟩ }
+
+  and an indented block:
+
+  ⟨d⟩| ⟨/⟩indented, inside the item
+
+1. Numbered, then code:
+
+   ⟨d⟩| ⟨/⟩second line is longer tha
+   ⟨d⟩->⟨/⟩n the first by quite a bi
+   ⟨d⟩->⟨/⟩t, to wrap
+
+An indented code block:
+
+⟨d⟩| ⟨/⟩first line
+⟨d⟩| ⟨/⟩    deeper
+⟨d⟩| ⟨/⟩    a tab after four spaces
+
+⟨d⟩| ⟨/⟩a fence with six backticks h
+⟨d⟩->⟨/⟩olds
+⟨d⟩| ⟨/⟩```
+⟨d⟩| ⟨/⟩three inside
+
+⟨d⟩| ⟨/⟩an unclosed fence runs to th
+⟨d⟩->⟨/⟩e end of the document
+⟨d⟩|⟨/⟩
+⟨d⟩| ⟨/⟩with a blank line in it
+-- width 80, no styles
+# Code
+
+│ zig
+│ const std = @import("std");
+│
+│ pub fn main() void {
+│     std.debug.print("a tab indents this line\n", .{});
+│     std.debug.print("and four spaces this one\n", .{});
+│ }
+
+│ a fence without a language, and a line long enough that it has to be hard-wrap
+↪ ped at every width we test here
+
+│ ruby
+│ puts "info string with extra words, only the first shown"
+
+│ averyveryverylonglanguagenamethatcannotfitthenarrowmeasure
+│ x
+
+• A list item with code:
+
+  │ c
+  │ int main(void) { return 0; }
+
+  and an indented block:
+
+  │ indented, inside the item
+
+1. Numbered, then code:
+
+   │ second line is longer than the first by quite a bit, to wrap
+
+An indented code block:
+
+│ first line
+│     deeper
+│     a tab after four spaces
+
+│ a fence with six backticks holds
+│ ```
+│ three inside
+
+│ an unclosed fence runs to the end of the document
+│
+│ with a blank line in it

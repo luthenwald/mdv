@@ -1,0 +1,2 @@
+-- mdv -P --color=never < 13 bytes
+only stdin

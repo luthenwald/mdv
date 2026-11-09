@@ -1,0 +1,4 @@
+-- mdv -P --color=never -- -w
+-- stderr
+mdv: -w: no such file
+-- exit 1

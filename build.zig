@@ -80,6 +80,7 @@ pub fn build(b: *std.Build) void {
             .target = b.graph.host,
         }),
     });
+    golden.root_module.addOptions("build_options", options);
     const golden_check = goldenRun(b, golden, exe);
     const golden_run = goldenRun(b, golden, exe);
     golden_run.addPassthruArgs();

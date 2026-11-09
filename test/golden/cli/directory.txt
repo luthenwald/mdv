@@ -1,0 +1,4 @@
+-- mdv -P .
+-- stderr
+mdv: .: is a directory
+-- exit 1

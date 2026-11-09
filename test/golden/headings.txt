@@ -1,0 +1,119 @@
+-- width 80
+⟨d⟩# ⟨/⟩⟨bu⟩First level⟨/⟩
+
+⟨d⟩## ⟨/⟩⟨b⟩Second level⟨/⟩
+
+⟨d⟩### ⟨/⟩⟨bd⟩Third level⟨/⟩
+
+⟨d⟩#### ⟨/⟩⟨bd⟩Fourth level⟨/⟩
+
+⟨d⟩##### ⟨/⟩⟨bd⟩Fifth level⟨/⟩
+
+⟨d⟩###### ⟨/⟩⟨bd⟩Sixth level⟨/⟩
+
+⟨d⟩# ⟨/⟩⟨bu⟩A long heading at the first level that wraps at the measure and shows how the⟨/⟩
+  ⟨bu⟩continuation lines hang⟨/⟩
+
+⟨d⟩### ⟨/⟩⟨bd⟩A long heading at the third level that also wraps, so the hanging indent is⟨/⟩
+    ⟨bd⟩wider⟨/⟩
+
+⟨d⟩# ⟨/⟩⟨bu⟩Setext level one⟨/⟩
+
+⟨d⟩## ⟨/⟩⟨b⟩Setext level two, long enough to wrap when the measure is narrow, like the⟨/⟩
+   ⟨b⟩others⟨/⟩
+
+⟨d⟩## ⟨/⟩⟨b⟩Inline ⟨/⟩⟨bi⟩emphasis⟨/⟩⟨b⟩, ⟨/⟩⟨bd⟩`⟨/⟩⟨b34⟩code⟨/⟩⟨bd⟩`⟨/⟩⟨b⟩ and a ⟨link https://example.org⟩⟨/⟩⟨bu34⟩link⟨/link⟩⟨/⟩⟨b⟩ in a heading⟨/⟩
+
+⟨d⟩#⟨/⟩
+-- width 40
+⟨d⟩# ⟨/⟩⟨bu⟩First level⟨/⟩
+
+⟨d⟩## ⟨/⟩⟨b⟩Second level⟨/⟩
+
+⟨d⟩### ⟨/⟩⟨bd⟩Third level⟨/⟩
+
+⟨d⟩#### ⟨/⟩⟨bd⟩Fourth level⟨/⟩
+
+⟨d⟩##### ⟨/⟩⟨bd⟩Fifth level⟨/⟩
+
+⟨d⟩###### ⟨/⟩⟨bd⟩Sixth level⟨/⟩
+
+⟨d⟩# ⟨/⟩⟨bu⟩A long heading at the first level that⟨/⟩
+  ⟨bu⟩wraps at the measure and shows how the⟨/⟩
+  ⟨bu⟩continuation lines hang⟨/⟩
+
+⟨d⟩### ⟨/⟩⟨bd⟩A long heading at the third level⟨/⟩
+    ⟨bd⟩that also wraps, so the hanging⟨/⟩
+    ⟨bd⟩indent is wider⟨/⟩
+
+⟨d⟩# ⟨/⟩⟨bu⟩Setext level one⟨/⟩
+
+⟨d⟩## ⟨/⟩⟨b⟩Setext level two, long enough to wrap⟨/⟩
+   ⟨b⟩when the measure is narrow, like the⟨/⟩
+   ⟨b⟩others⟨/⟩
+
+⟨d⟩## ⟨/⟩⟨b⟩Inline ⟨/⟩⟨bi⟩emphasis⟨/⟩⟨b⟩, ⟨/⟩⟨bd⟩`⟨/⟩⟨b34⟩code⟨/⟩⟨bd⟩`⟨/⟩⟨b⟩ and a ⟨link https://example.org⟩⟨/⟩⟨bu34⟩link⟨/link⟩⟨/⟩⟨b⟩ in⟨/⟩
+   ⟨b⟩a heading⟨/⟩
+
+⟨d⟩#⟨/⟩
+-- width 30, ascii
+⟨d⟩# ⟨/⟩⟨bu⟩First level⟨/⟩
+
+⟨d⟩## ⟨/⟩⟨b⟩Second level⟨/⟩
+
+⟨d⟩### ⟨/⟩⟨bd⟩Third level⟨/⟩
+
+⟨d⟩#### ⟨/⟩⟨bd⟩Fourth level⟨/⟩
+
+⟨d⟩##### ⟨/⟩⟨bd⟩Fifth level⟨/⟩
+
+⟨d⟩###### ⟨/⟩⟨bd⟩Sixth level⟨/⟩
+
+⟨d⟩# ⟨/⟩⟨bu⟩A long heading at the first⟨/⟩
+  ⟨bu⟩level that wraps at the⟨/⟩
+  ⟨bu⟩measure and shows how the⟨/⟩
+  ⟨bu⟩continuation lines hang⟨/⟩
+
+⟨d⟩### ⟨/⟩⟨bd⟩A long heading at the⟨/⟩
+    ⟨bd⟩third level that also⟨/⟩
+    ⟨bd⟩wraps, so the hanging⟨/⟩
+    ⟨bd⟩indent is wider⟨/⟩
+
+⟨d⟩# ⟨/⟩⟨bu⟩Setext level one⟨/⟩
+
+⟨d⟩## ⟨/⟩⟨b⟩Setext level two, long⟨/⟩
+   ⟨b⟩enough to wrap when the⟨/⟩
+   ⟨b⟩measure is narrow, like the⟨/⟩
+   ⟨b⟩others⟨/⟩
+
+⟨d⟩## ⟨/⟩⟨b⟩Inline ⟨/⟩⟨bi⟩emphasis⟨/⟩⟨b⟩, ⟨/⟩⟨bd⟩`⟨/⟩⟨b34⟩code⟨/⟩⟨bd⟩`⟨/⟩⟨b⟩ and⟨/⟩
+   ⟨b⟩a ⟨link https://example.org⟩⟨/⟩⟨bu34⟩link⟨/link⟩⟨/⟩⟨b⟩ in a heading⟨/⟩
+
+⟨d⟩#⟨/⟩
+-- width 80, no styles
+# First level
+
+## Second level
+
+### Third level
+
+#### Fourth level
+
+##### Fifth level
+
+###### Sixth level
+
+# A long heading at the first level that wraps at the measure and shows how the
+  continuation lines hang
+
+### A long heading at the third level that also wraps, so the hanging indent is
+    wider
+
+# Setext level one
+
+## Setext level two, long enough to wrap when the measure is narrow, like the
+   others
+
+## Inline emphasis, `code` and a link (https://example.org) in a heading
+
+#

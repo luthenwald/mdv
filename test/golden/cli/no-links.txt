@@ -1,0 +1,32 @@
+-- mdv -P --color=always --no-links -w 60 links.md
+⟨d⟩# ⟨/⟩⟨bu⟩Links⟨/⟩
+
+A ⟨u34⟩relative path⟨/⟩ ⟨d⟩(docs/manual.md)⟨/⟩, an ⟨u34⟩anchor⟨/⟩ ⟨d⟩(#section)⟨/⟩, a
+⟨u34⟩scheme⟨/⟩ ⟨d⟩(https://example.org/path?q=1)⟨/⟩, a ⟨u34⟩bare host⟨/⟩
+⟨d⟩(example.org/no/scheme)⟨/⟩, ⟨u34⟩file⟨/⟩ ⟨d⟩(file:///etc/hosts)⟨/⟩, ⟨u34⟩mail⟨/⟩
+⟨d⟩(mailto:me@example.org)⟨/⟩, and a ⟨u34⟩javascript one⟨/⟩
+⟨d⟩(javascript:alert(1))⟨/⟩.
+
+An ⟨u34⟩empty destination⟨/⟩ and an ⟨u34⟩angle one⟨/⟩ ⟨d⟩(with space.md)⟨/⟩.
+
+A ⟨u34⟩line break in the destination⟨/⟩ ⟨d⟩(a b)⟨/⟩ and a ⟨u34⟩tab⟨/⟩ ⟨d⟩(a b)⟨/⟩.
+
+A ⟨u34⟩data URI⟨/⟩ ⟨d⟩(data:image/png;base64,…)⟨/⟩ and an [image: image
+with a data URI] ⟨d⟩(data:image/gif;base64,…)⟨/⟩.
+
+An autolink ⟨u34⟩https://example.org/auto⟨/⟩, an email
+⟨u34⟩someone@example.org⟨/⟩, and ⟨u34⟩ftp://files.example.org⟨/⟩.
+
+[image: an image] ⟨d⟩(images/diagram.png)⟨/⟩ and [image: another]
+⟨d⟩(https://example.org/i.png)⟨/⟩.
+
+⟨u34⟩a reference⟨/⟩ ⟨d⟩(https://example.org/reference)⟨/⟩, ⟨u34⟩another⟨/⟩
+⟨d⟩(https://example.org/reference)⟨/⟩ (case-insensitive), ⟨u34⟩a⟨/⟩
+⟨u34⟩collapsed one⟨/⟩ ⟨d⟩(./here.md)⟨/⟩ and a ⟨u34⟩shortcut⟨/⟩ ⟨d⟩(/absolute/path)⟨/⟩.
+
+A link whose text is ⟨b⟩strong ⟨/⟩⟨bu34⟩with nested⟨/⟩
+⟨d⟩(https://example.org/inner)⟨/⟩⟨b⟩ text⟨/⟩ stays one link.
+
+A long destination: ⟨u34⟩here⟨/⟩
+⟨d⟩(https://example.org/a/very/long/path/that/goes/on/and/on/pa⟨/⟩
+⟨d⟩st/the/end/of/the/line/to/see/how/the/shown/address/wraps)⟨/⟩.

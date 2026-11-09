@@ -1,0 +1,120 @@
+-- mdv -P --color=always -w 40 lists.md tables.md
+⟨d⟩lists.md⟨/⟩
+⟨d⟩# ⟨/⟩⟨bu⟩Lists⟨/⟩
+
+• tight
+• bullets
+  ◦ change
+    ▪ with
+      • depth
+        ◦ and come back
+
+1. one
+
+2. two
+
+   a second paragraph makes the list
+   loose
+
+3. three
+
+Numbers align on the right:
+
+ 98. ninety-eight
+ 99. ninety-nine
+100. one hundred
+
+☐ to do, with a long description that
+  wraps under the text and not under the
+  box
+☑ done
+• not a task
+
+1. ☐ numbered task
+2. ☑ done
+
+• item with code:
+
+  ⟨d⟩│ ⟨/⟩indented under the item
+
+• item with a quote:
+
+  ⟨d⟩│ ⟨/⟩quoted
+
+•
+• an empty item above
+
+1) a parenthesis
+2) delimiter
+
+⟨d⟩tables.md⟨/⟩
+⟨d⟩# ⟨/⟩⟨bu⟩Tables⟨/⟩
+
+⟨d⟩┌─────────────┬────────┬───────┬──────┐⟨/⟩
+⟨d⟩│ ⟨/⟩⟨b⟩left⟨/⟩       ⟨d⟩ │ ⟨/⟩⟨b⟩center⟨/⟩⟨d⟩ │ ⟨/⟩⟨b⟩right⟨/⟩⟨d⟩ │ ⟨/⟩⟨b⟩none⟨/⟩⟨d⟩ │⟨/⟩
+⟨d⟩├─────────────┼────────┼───────┼──────┤⟨/⟩
+⟨d⟩│ ⟨/⟩a          ⟨d⟩ │ ⟨/⟩  b   ⟨d⟩ │ ⟨/⟩    c⟨d⟩ │ ⟨/⟩d   ⟨d⟩ │⟨/⟩
+⟨d⟩│ ⟨/⟩longer text⟨d⟩ │ `⟨/⟩⟨34⟩code⟨/⟩⟨d⟩` │ ⟨/⟩1,234⟨d⟩ │ ⟨/⟩⟨b⟩bold⟨/⟩⟨d⟩ │⟨/⟩
+⟨d⟩└─────────────┴────────┴───────┴──────┘⟨/⟩
+
+A table with a long cell wraps it, and
+each column keeps its longest word:
+
+⟨d⟩┌──────┬───────────────────────────────┐⟨/⟩
+⟨d⟩│ ⟨/⟩⟨b⟩name⟨/⟩⟨d⟩ │ ⟨/⟩⟨b⟩description⟨/⟩                  ⟨d⟩ │⟨/⟩
+⟨d⟩├──────┼───────────────────────────────┤⟨/⟩
+⟨d⟩│ ⟨/⟩mdv ⟨d⟩ │ ⟨/⟩a minimal markdown viewer for⟨d⟩ │⟨/⟩
+⟨d⟩│ ⟨/⟩    ⟨d⟩ │ ⟨/⟩the terminal, which renders  ⟨d⟩ │⟨/⟩
+⟨d⟩│ ⟨/⟩    ⟨d⟩ │ ⟨/⟩once to standard output and  ⟨d⟩ │⟨/⟩
+⟨d⟩│ ⟨/⟩    ⟨d⟩ │ ⟨/⟩leaves the rest to the pager ⟨d⟩ │⟨/⟩
+⟨d⟩│ ⟨/⟩less⟨d⟩ │ ⟨/⟩the pager                    ⟨d⟩ │⟨/⟩
+⟨d⟩└──────┴───────────────────────────────┘⟨/⟩
+
+At a narrow width, a wide table lists
+its rows:
+
+⟨b⟩parameter:⟨/⟩ width
+⟨b⟩type:⟨/⟩ integer
+⟨b⟩default:⟨/⟩ terminal
+⟨b⟩description:⟨/⟩ the wrap width, at most
+eighty columns
+
+⟨b⟩parameter:⟨/⟩ paging
+⟨b⟩type:⟨/⟩ auto, always or never
+⟨b⟩default:⟨/⟩ auto
+⟨b⟩description:⟨/⟩ whether output goes through
+the pager
+
+Wide characters take two columns:
+
+⟨d⟩┌──────┬────────┐⟨/⟩
+⟨d⟩│ ⟨/⟩⟨b⟩言語⟨/⟩⟨d⟩ │ ⟨/⟩⟨b⟩名前⟨/⟩  ⟨d⟩ │⟨/⟩
+⟨d⟩├──────┼────────┤⟨/⟩
+⟨d⟩│ ⟨/⟩Zig ⟨d⟩ │ ⟨/⟩ジグ  ⟨d⟩ │⟨/⟩
+⟨d⟩│ ⟨/⟩🦎  ⟨d⟩ │ ⟨/⟩lizard⟨d⟩ │⟨/⟩
+⟨d⟩└──────┴────────┘⟨/⟩
+
+• A table in a list:
+
+  ⟨d⟩┌───┬───┐⟨/⟩
+  ⟨d⟩│ ⟨/⟩⟨b⟩a⟨/⟩⟨d⟩ │ ⟨/⟩⟨b⟩b⟨/⟩⟨d⟩ │⟨/⟩
+  ⟨d⟩├───┼───┤⟨/⟩
+  ⟨d⟩│ ⟨/⟩1⟨d⟩ │ ⟨/⟩2⟨d⟩ │⟨/⟩
+  ⟨d⟩└───┴───┘⟨/⟩
+
+⟨d⟩│ ┌────────┬───────┐⟨/⟩
+⟨d⟩│ │ ⟨/⟩⟨b⟩quoted⟨/⟩⟨d⟩ │ ⟨/⟩⟨b⟩table⟨/⟩⟨d⟩ │⟨/⟩
+⟨d⟩│ ├────────┼───────┤⟨/⟩
+⟨d⟩│ │ ⟨/⟩x     ⟨d⟩ │ ⟨link https://example.org⟩⟨/⟩⟨u34⟩link⟨/link⟩⟨/⟩ ⟨d⟩ │⟨/⟩
+⟨d⟩│ └────────┴───────┘⟨/⟩
+
+⟨d⟩┌─────────────┬─────────┐⟨/⟩
+⟨d⟩│ ⟨/⟩⟨b⟩header only⟨/⟩⟨d⟩ │ ⟨/⟩⟨b⟩no body⟨/⟩⟨d⟩ │⟨/⟩
+⟨d⟩└─────────────┴─────────┘⟨/⟩
+
+⟨d⟩┌────────────────┬─────────┐⟨/⟩
+⟨d⟩│ ⟨/⟩⟨b⟩escaped | pipe⟨/⟩⟨d⟩ │ ⟨/⟩⟨bd⟩`⟨/⟩⟨b34⟩a | b⟨/⟩⟨bd⟩`⟨/⟩⟨d⟩ │⟨/⟩
+⟨d⟩├────────────────┼─────────┤⟨/⟩
+⟨d⟩│ ⟨/⟩one           ⟨d⟩ │ ⟨/⟩two    ⟨d⟩ │⟨/⟩
+⟨d⟩│ ⟨/⟩short         ⟨d⟩ │ ⟨/⟩       ⟨d⟩ │⟨/⟩
+⟨d⟩└────────────────┴─────────┘⟨/⟩

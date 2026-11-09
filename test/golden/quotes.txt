@@ -1,0 +1,162 @@
+-- width 80
+⟨d⟩# ⟨/⟩⟨bu⟩Quotes⟨/⟩
+
+⟨d⟩│ ⟨/⟩A quote with a paragraph long enough to wrap at the measure, so the gutter
+⟨d⟩│ ⟨/⟩repeats on every line it takes, and ⟨i⟩emphasis⟨/⟩ inside.
+⟨d⟩│⟨/⟩
+⟨d⟩│ ⟨/⟩A second paragraph in the same quote.
+
+⟨d⟩│ ⟨/⟩Nested:
+⟨d⟩│⟨/⟩
+⟨d⟩│ │ ⟨/⟩The inner quote, also long enough to wrap when the width is small, keeps
+⟨d⟩│ │ ⟨/⟩both gutters.
+⟨d⟩│ │⟨/⟩
+⟨d⟩│ │ │ ⟨/⟩And a third.
+
+⟨d⟩│ ⟨/⟩A list in a quote:
+⟨d⟩│⟨/⟩
+⟨d⟩│ ⟨/⟩• one
+⟨d⟩│ ⟨/⟩• two, with a nested item
+⟨d⟩│ ⟨/⟩  ◦ deeper
+⟨d⟩│⟨/⟩
+⟨d⟩│ │ sh⟨/⟩
+⟨d⟩│ │ ⟨/⟩echo "code in a quote"
+⟨d⟩│⟨/⟩
+⟨d⟩│ ┌───┬───┐⟨/⟩
+⟨d⟩│ │ ⟨/⟩⟨b⟩a⟨/⟩⟨d⟩ │ ⟨/⟩⟨b⟩b⟨/⟩⟨d⟩ │⟨/⟩
+⟨d⟩│ ├───┼───┤⟨/⟩
+⟨d⟩│ │ ⟨/⟩1⟨d⟩ │ ⟨/⟩2⟨d⟩ │⟨/⟩
+⟨d⟩│ └───┴───┘⟨/⟩
+
+• A quote in a list:
+
+  ⟨d⟩│ ⟨/⟩Inside the item, so the marker's indent comes before the gutter.
+
+⟨d⟩│ ⟨/⟩Lazy continuation lines join the quote.
+
+⟨d⟩│ # ⟨/⟩⟨bu⟩A heading in a quote⟨/⟩
+-- width 40
+⟨d⟩# ⟨/⟩⟨bu⟩Quotes⟨/⟩
+
+⟨d⟩│ ⟨/⟩A quote with a paragraph long enough
+⟨d⟩│ ⟨/⟩to wrap at the measure, so the gutter
+⟨d⟩│ ⟨/⟩repeats on every line it takes, and
+⟨d⟩│ ⟨/⟩⟨i⟩emphasis⟨/⟩ inside.
+⟨d⟩│⟨/⟩
+⟨d⟩│ ⟨/⟩A second paragraph in the same quote.
+
+⟨d⟩│ ⟨/⟩Nested:
+⟨d⟩│⟨/⟩
+⟨d⟩│ │ ⟨/⟩The inner quote, also long enough to
+⟨d⟩│ │ ⟨/⟩wrap when the width is small, keeps
+⟨d⟩│ │ ⟨/⟩both gutters.
+⟨d⟩│ │⟨/⟩
+⟨d⟩│ │ │ ⟨/⟩And a third.
+
+⟨d⟩│ ⟨/⟩A list in a quote:
+⟨d⟩│⟨/⟩
+⟨d⟩│ ⟨/⟩• one
+⟨d⟩│ ⟨/⟩• two, with a nested item
+⟨d⟩│ ⟨/⟩  ◦ deeper
+⟨d⟩│⟨/⟩
+⟨d⟩│ │ sh⟨/⟩
+⟨d⟩│ │ ⟨/⟩echo "code in a quote"
+⟨d⟩│⟨/⟩
+⟨d⟩│ ┌───┬───┐⟨/⟩
+⟨d⟩│ │ ⟨/⟩⟨b⟩a⟨/⟩⟨d⟩ │ ⟨/⟩⟨b⟩b⟨/⟩⟨d⟩ │⟨/⟩
+⟨d⟩│ ├───┼───┤⟨/⟩
+⟨d⟩│ │ ⟨/⟩1⟨d⟩ │ ⟨/⟩2⟨d⟩ │⟨/⟩
+⟨d⟩│ └───┴───┘⟨/⟩
+
+• A quote in a list:
+
+  ⟨d⟩│ ⟨/⟩Inside the item, so the marker's
+  ⟨d⟩│ ⟨/⟩indent comes before the gutter.
+
+⟨d⟩│ ⟨/⟩Lazy continuation lines join the
+⟨d⟩│ ⟨/⟩quote.
+
+⟨d⟩│ # ⟨/⟩⟨bu⟩A heading in a quote⟨/⟩
+-- width 30, ascii
+⟨d⟩# ⟨/⟩⟨bu⟩Quotes⟨/⟩
+
+⟨d⟩| ⟨/⟩A quote with a paragraph
+⟨d⟩| ⟨/⟩long enough to wrap at the
+⟨d⟩| ⟨/⟩measure, so the gutter
+⟨d⟩| ⟨/⟩repeats on every line it
+⟨d⟩| ⟨/⟩takes, and ⟨i⟩emphasis⟨/⟩ inside.
+⟨d⟩|⟨/⟩
+⟨d⟩| ⟨/⟩A second paragraph in the
+⟨d⟩| ⟨/⟩same quote.
+
+⟨d⟩| ⟨/⟩Nested:
+⟨d⟩|⟨/⟩
+⟨d⟩| | ⟨/⟩The inner quote, also long
+⟨d⟩| | ⟨/⟩enough to wrap when the
+⟨d⟩| | ⟨/⟩width is small, keeps both
+⟨d⟩| | ⟨/⟩gutters.
+⟨d⟩| |⟨/⟩
+⟨d⟩| | | ⟨/⟩And a third.
+
+⟨d⟩| ⟨/⟩A list in a quote:
+⟨d⟩|⟨/⟩
+⟨d⟩| ⟨/⟩* one
+⟨d⟩| ⟨/⟩* two, with a nested item
+⟨d⟩| ⟨/⟩  - deeper
+⟨d⟩|⟨/⟩
+⟨d⟩| | sh⟨/⟩
+⟨d⟩| | ⟨/⟩echo "code in a quote"
+⟨d⟩|⟨/⟩
+⟨d⟩| +---+---+⟨/⟩
+⟨d⟩| | ⟨/⟩⟨b⟩a⟨/⟩⟨d⟩ | ⟨/⟩⟨b⟩b⟨/⟩⟨d⟩ |⟨/⟩
+⟨d⟩| +---+---+⟨/⟩
+⟨d⟩| | ⟨/⟩1⟨d⟩ | ⟨/⟩2⟨d⟩ |⟨/⟩
+⟨d⟩| +---+---+⟨/⟩
+
+* A quote in a list:
+
+  ⟨d⟩| ⟨/⟩Inside the item, so the
+  ⟨d⟩| ⟨/⟩marker's indent comes
+  ⟨d⟩| ⟨/⟩before the gutter.
+
+⟨d⟩| ⟨/⟩Lazy continuation lines join
+⟨d⟩| ⟨/⟩the quote.
+
+⟨d⟩| # ⟨/⟩⟨bu⟩A heading in a quote⟨/⟩
+-- width 80, no styles
+# Quotes
+
+│ A quote with a paragraph long enough to wrap at the measure, so the gutter
+│ repeats on every line it takes, and emphasis inside.
+│
+│ A second paragraph in the same quote.
+
+│ Nested:
+│
+│ │ The inner quote, also long enough to wrap when the width is small, keeps
+│ │ both gutters.
+│ │
+│ │ │ And a third.
+
+│ A list in a quote:
+│
+│ • one
+│ • two, with a nested item
+│   ◦ deeper
+│
+│ │ sh
+│ │ echo "code in a quote"
+│
+│ ┌───┬───┐
+│ │ a │ b │
+│ ├───┼───┤
+│ │ 1 │ 2 │
+│ └───┴───┘
+
+• A quote in a list:
+
+  │ Inside the item, so the marker's indent comes before the gutter.
+
+│ Lazy continuation lines join the quote.
+
+│ # A heading in a quote

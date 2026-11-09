@@ -1,0 +1,4 @@
+-- mdv MDV_PAGER=echo PAGER RAN --paging=always no-such.md
+-- stderr
+mdv: no-such.md: no such file
+-- exit 1
