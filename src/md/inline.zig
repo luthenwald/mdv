@@ -485,6 +485,9 @@ const Parser = struct {
         if (i <= p.start) return '\n';
         var j = i - 1;
         while (j > p.start and i - j < 4 and p.c.text.items[j] & 0xC0 == 0x80) j -= 1;
+        // Invalid UTF-8 has no code point here.
+        const len = std.unicode.utf8ByteSequenceLength(p.c.text.items[j]) catch return null;
+        if (j + len != i) return null;
         return std.unicode.utf8Decode(p.c.text.items[j..i]) catch null;
     }
 

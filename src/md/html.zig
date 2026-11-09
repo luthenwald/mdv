@@ -264,6 +264,11 @@ fn expectHtml(markdown: []const u8, expected: []const u8) !void {
     try testing.expectEqualStrings(expected, out.written());
 }
 
+test "invalid UTF-8 before a delimiter" {
+    try expectHtml("\xe3\x80*a*\n", "<p>\xe3\x80<em>a</em></p>\n");
+    try expectHtml("a\x80*b*\n", "<p>a\x80<em>b</em></p>\n");
+}
+
 test "strikethrough between one or two tildes" {
     try expectHtml("~~Hi~~ Hello, ~there~ ~~~not~~~ ~~a~\n", "<p><del>Hi</del> Hello, <del>there</del> ~~~not~~~ ~~a~</p>\n");
     try expectHtml("This ~~has a\n\nnew paragraph~~.\n", "<p>This ~~has a</p>\n<p>new paragraph~~.</p>\n");
