@@ -151,6 +151,9 @@ const Parser = struct {
     blank: bool = false,
     all_closed: bool = true,
     last_matched: usize = 0,
+    /// The line and offset of the last scan for the next non-space.
+    scanned_line: u32 = 0,
+    scanned_from: usize = 0,
     /// Where a thematic break scan of this line gave up.
     break_give_up: usize = 0,
 
@@ -504,12 +507,21 @@ const Parser = struct {
     fn findNextNonspace(p: *Parser) void {
         var i = p.offset;
         var cols = p.column;
-        while (i < p.line.len) : (i += 1) {
-            switch (p.line[i]) {
-                ' ' => cols += 1,
-                '\t' => cols += 4 - cols % 4,
-                else => break,
+        if (p.scanned_line == p.line_number and p.scanned_from <= p.offset and p.offset <= p.next_nonspace) {
+            // Inside spaces already scanned: an indented line under deep
+            // lists is not scanned again for each list.
+            i = p.next_nonspace;
+            cols = p.next_nonspace_column;
+        } else {
+            while (i < p.line.len) : (i += 1) {
+                switch (p.line[i]) {
+                    ' ' => cols += 1,
+                    '\t' => cols += 4 - cols % 4,
+                    else => break,
+                }
             }
+            p.scanned_line = p.line_number;
+            p.scanned_from = p.offset;
         }
         p.blank = i == p.line.len;
         p.next_nonspace = i;
