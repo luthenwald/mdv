@@ -92,6 +92,8 @@ const Open = struct {
     /// Where a leaf's content begins in `Parser.text`.
     content_start: u32,
     start_line: u32,
+    /// How many lines had been settled (`Parser.settled`) when it opened.
+    born: u32 = 0,
     /// Lists and list items.
     marker: scan.ListMarker = .{ .ordered = false, .char = 0, .len = 0 },
     marker_offset: usize = 0,
@@ -112,8 +114,11 @@ const Parser = struct {
     gfm: bool,
 
     nodes: std.MultiArrayList(Ast.Node) = .empty,
-    /// Per node: the last line it held was blank (for list tightness).
+    /// Per node: the last line it held was blank (for list tightness). Set
+    /// when the node closes, from the last line settled while it was open.
     blank_end: std.ArrayList(bool) = .empty,
+    /// Per list and list item: its last child ends with a blank line.
+    tail_blank: std.ArrayList(bool) = .empty,
     extra: std.ArrayList(Index) = .empty,
     text: std.ArrayList(u8) = .empty,
     lists: std.ArrayList(Ast.List) = .empty,
@@ -125,6 +130,14 @@ const Parser = struct {
     open: std.ArrayList(Open) = .empty,
     /// The children of open blocks so far, each block's after its parent's.
     children: std.ArrayList(Index) = .empty,
+    /// The depths in `open` of the blocks that a line with nothing left
+    /// does not continue for free, in order: all but lists and list items
+    /// with children.
+    stops: std.ArrayList(u32) = .empty,
+    /// Lines that reached the end of `incorporateLine`, and whether the last
+    /// of them was blank for list tightness.
+    settled: u32 = 0,
+    last_settled_blank: bool = false,
 
     line: []const u8 = "",
     line_number: u32 = 0,
@@ -138,11 +151,46 @@ const Parser = struct {
     blank: bool = false,
     all_closed: bool = true,
     last_matched: usize = 0,
+    /// Where a thematic break scan of this line gave up.
+    break_give_up: usize = 0,
 
     fn begin(p: *Parser) !void {
         try p.nodes.append(p.arena, .{ .tag = .document, .data = .{ .parent = .{} } });
-        try p.blank_end.append(p.arena, false);
+        try p.appendFlags();
         try p.open.append(p.arena, .{ .node = 0, .tag = .document, .children_start = 0, .content_start = 0, .start_line = 0 });
+        try p.restop();
+    }
+
+    fn appendFlags(p: *Parser) !void {
+        try p.blank_end.append(p.arena, false);
+        try p.tail_blank.append(p.arena, false);
+    }
+
+    /// Brings `stops` up to date for the tip and its parent, the only open
+    /// blocks whose children change.
+    fn restop(p: *Parser) !void {
+        const len = p.open.items.len;
+        const from = len -| 2;
+        while (p.stops.items.len > 0 and p.stops.items[p.stops.items.len - 1] >= from) _ = p.stops.pop();
+        for (from..len) |depth| {
+            const free = switch (p.open.items[depth].tag) {
+                .list => true,
+                .list_item => p.hasChildren(depth),
+                else => false,
+            };
+            if (!free) try p.stops.append(p.arena, @intCast(depth));
+        }
+    }
+
+    /// The first depth after `depth` in `stops`, or the number of open blocks.
+    fn nextStop(p: *const Parser, depth: usize) usize {
+        var low: usize = 0;
+        var high = p.stops.items.len;
+        while (low < high) {
+            const mid = (low + high) / 2;
+            if (p.stops.items[mid] <= depth) low = mid + 1 else high = mid;
+        }
+        return if (low < p.stops.items.len) p.stops.items[low] else p.open.items.len;
     }
 
     fn tip(p: *Parser) *Open {
@@ -164,12 +212,22 @@ const Parser = struct {
         p.column = 0;
         p.blank = false;
         p.partially_consumed_tab = false;
+        p.break_give_up = 0;
 
         // Walk the open blocks; `container` ends at the last one this line continues.
         const old_tip = p.open.items.len - 1;
         var container: usize = 0;
         while (container < old_tip) {
             p.findNextNonspace();
+            if (p.offset == p.line.len) {
+                // Nothing is left of the line: lists and list items with
+                // children continue without moving, up to the next stop.
+                const skip_to = p.nextStop(container) - 1;
+                if (skip_to > container) {
+                    container = skip_to;
+                    continue;
+                }
+            }
             switch (try p.continueBlock(container + 1)) {
                 .matched => container += 1,
                 .failed => break,
@@ -219,7 +277,10 @@ const Parser = struct {
         const last_line_blank = p.blank and !(o.tag == .block_quote or
             (o.tag == .code_block and o.fenced) or
             (o.tag == .list_item and !p.hasChildren(depth) and o.start_line == p.line_number));
-        for (p.open.items[0 .. depth + 1]) |a| p.blank_end.items[a.node] = last_line_blank;
+        // Every open block now holds this line; each takes the value when
+        // it closes.
+        p.last_settled_blank = last_line_blank;
+        p.settled += 1;
 
         switch (o.tag) {
             .paragraph, .code_block, .html_block, .table => {
@@ -356,7 +417,13 @@ const Parser = struct {
                 if (p.gfm and try p.tableStart(rest)) return .leaf;
             }
 
-            if (scan.thematicBreak(rest)) {
+            // A line such as `- - - … x` would be scanned again from each
+            // list marker; skip starts before where the last scan gave up.
+            const broke = p.next_nonspace >= p.break_give_up and if (scan.thematicBreakScan(rest)) |at| blk: {
+                p.break_give_up = p.next_nonspace + at;
+                break :blk false;
+            } else true;
+            if (broke) {
                 try p.closeUnmatchedBlocks();
                 _ = try p.addChild(.thematic_break);
                 p.advanceOffset(p.line.len - p.offset, false);
@@ -525,7 +592,7 @@ const Parser = struct {
                 else => .{ .parent = .{} },
             },
         });
-        try p.blank_end.append(p.arena, false);
+        try p.appendFlags();
         try p.children.append(p.arena, node);
         try p.open.append(p.arena, .{
             .node = node,
@@ -533,7 +600,9 @@ const Parser = struct {
             .children_start = @intCast(p.children.items.len),
             .content_start = @intCast(p.text.items.len),
             .start_line = p.line_number,
+            .born = p.settled,
         });
+        try p.restop();
         return p.open.items.len - 1;
     }
 
@@ -561,10 +630,17 @@ const Parser = struct {
     /// Closes the tip, its content ending at `end` in `text`.
     fn finalizeTo(p: *Parser, end: u32) !void {
         const o = p.open.pop().?;
+        p.blank_end.items[o.node] = o.born < p.settled and p.last_settled_blank;
+        try p.close(o, end);
+        try p.restop();
+    }
+
+    fn close(p: *Parser, o: Open, end: u32) !void {
         const data = &p.nodes.items(.data)[o.node];
         switch (o.tag) {
             .document, .block_quote, .list, .list_item => {
                 const kids = p.children.items[o.children_start..];
+                if (kids.len > 0) p.tail_blank.items[o.node] = p.endsWithBlankLine(kids[kids.len - 1]);
                 const start: u32 = @intCast(p.extra.items.len);
                 try p.extra.appendSlice(p.arena, kids);
                 p.children.shrinkRetainingCapacity(o.children_start);
@@ -692,7 +768,7 @@ const Parser = struct {
     fn newNode(p: *Parser, tag: Ast.Node.Tag, data: Ast.Node.Data) !Index {
         const node: Index = @intCast(p.nodes.len);
         try p.nodes.append(p.arena, .{ .tag = tag, .data = data });
-        try p.blank_end.append(p.arena, false);
+        try p.appendFlags();
         return node;
     }
 
@@ -715,16 +791,14 @@ const Parser = struct {
         return p.nodes.items(.data)[node].parent.children.of(Index, p.extra.items);
     }
 
+    /// The node's last line was blank, or, for a list or list item, its last
+    /// child's (`tail_blank`, settled when the node closed).
     fn endsWithBlankLine(p: *const Parser, node: Index) bool {
-        var n = node;
-        while (true) {
-            if (p.blank_end.items[n]) return true;
-            const tag = p.nodes.items(.tag)[n];
-            if (tag != .list and tag != .list_item) return false;
-            const kids = p.childrenOf(n);
-            if (kids.len == 0) return false;
-            n = kids[kids.len - 1];
-        }
+        if (p.blank_end.items[node]) return true;
+        return switch (p.nodes.items(.tag)[node]) {
+            .list, .list_item => p.tail_blank.items[node],
+            else => false,
+        };
     }
 
     /// A list is loose when a blank line separates two of its items, or two
@@ -736,7 +810,7 @@ const Parser = struct {
             if (has_next and p.endsWithBlankLine(item)) return false;
             const blocks = p.childrenOf(item);
             for (blocks, 0..) |block, j| {
-                if (p.endsWithBlankLine(block) and (has_next or j + 1 < blocks.len)) return false;
+                if ((has_next or j + 1 < blocks.len) and p.endsWithBlankLine(block)) return false;
             }
         }
         return true;

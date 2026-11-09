@@ -49,12 +49,19 @@ pub fn maybeSpecial(s: []const u8) bool {
 
 /// Three or more of the same `*`, `-` or `_`, with only spaces and tabs between and after.
 pub fn thematicBreak(s: []const u8) bool {
-    if (s.len == 0 or (s[0] != '*' and s[0] != '-' and s[0] != '_')) return false;
+    return thematicBreakScan(s) == null;
+}
+
+/// Null for a thematic break, otherwise where the scan gave up. A scan of
+/// the same line from a later start before that point gives up there too,
+/// since everything in between is the marker or a space.
+pub fn thematicBreakScan(s: []const u8) ?usize {
+    if (s.len == 0 or (s[0] != '*' and s[0] != '-' and s[0] != '_')) return 0;
     var count: usize = 0;
-    for (s) |c| {
-        if (c == s[0]) count += 1 else if (!isSpaceOrTab(c)) return false;
+    for (s, 0..) |c, i| {
+        if (c == s[0]) count += 1 else if (!isSpaceOrTab(c)) return i;
     }
-    return count >= 3;
+    return if (count >= 3) null else s.len;
 }
 
 pub const AtxOpener = struct {
@@ -493,6 +500,10 @@ test "thematic breaks" {
     try testing.expect(!thematicBreak("**"));
     try testing.expect(!thematicBreak("*-*"));
     try testing.expect(!thematicBreak("--- a"));
+    try testing.expectEqual(null, thematicBreakScan("* * *"));
+    try testing.expectEqual(4, thematicBreakScan("- - x -"));
+    try testing.expectEqual(2, thematicBreakScan("--"));
+    try testing.expectEqual(0, thematicBreakScan("a"));
 }
 
 test "atx openers and closing sequences" {
