@@ -54,8 +54,10 @@ pub fn main(init: std.process.Init) !u8 {
     };
 
     if (terminal.page and output.lines.len > 0) {
-        if (pager.start(io, pager.command(init.environ_map))) |started| {
+        if (pager.start(io, arena, pager.command(init.environ_map), init.environ_map)) |started| {
             var child = started;
+            const interrupts = pager.ignoreInterrupts();
+            defer pager.restoreInterrupts(interrupts);
             const written = deliver(io, child.stdin.?, output);
             child.stdin.?.close(io);
             child.stdin = null;

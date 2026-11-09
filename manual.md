@@ -51,7 +51,9 @@ Text wraps between words, by the columns the characters take on screen: Chinese 
 
 ## Paging
 
-When standard output is a terminal, mdv writes into a pager. It runs `MDV_PAGER` if you set it, then `PAGER`, and otherwise `less -RFX`. With those flags less shows the styles, quits by itself when the document fits on one screen, and leaves the text in your scrollback after you quit. The pager runs through `/bin/sh -c`, so the variable can hold a command with its own options.
+When standard output is a terminal, mdv writes into a pager. It runs `MDV_PAGER` if you set it, then `PAGER`, and otherwise `less -RFX`. With those flags less shows the styles, quits by itself when the document fits on one screen, and leaves the text in your scrollback after you quit. The pager runs through `/bin/sh -c`, so the variable can hold a command with its own options. An empty variable counts as unset.
+
+A bare `less` in `PAGER` would show the escape sequences as text, so when `LESS` is not set in your environment, mdv sets it to `FRX` for the pager, as git does. Your own `LESS` is never changed. While the pager runs, Ctrl-C goes to it alone and mdv waits for it to quit.
 
 `--paging auto` is the default and pages only at a terminal. `--paging always` pages even into a pipe, and `--paging never`, or `-P`, prints directly. If the pager cannot be started, mdv prints directly instead. The shell usually says why on the line before.
 
@@ -95,6 +97,8 @@ A file that cannot be read is reported on standard error, such as `mdv: notes.md
 ```
 MDV_PAGER   the pager to use, before PAGER
 PAGER       the pager to use when MDV_PAGER is not set
+LESS        passed on as it is; set to FRX for the pager when missing
 NO_COLOR    when set and not empty, no blue; attributes stay
 COLUMNS     the width when no terminal can be asked
+TERM        dumb means no styles and no pager unless asked
 ```
