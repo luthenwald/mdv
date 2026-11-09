@@ -4,9 +4,10 @@
 //! statuses, standard input, several files, the pager, the environment)
 //! is compared the same way with the files in its `cli` subdirectory.
 //!
-//! usage: golden MDV GOLDEN_DIR TOUR [--update]
+//! usage: golden MDV GOLDEN_DIR TOUR README PICTURE_DIR [--update]
 //! Each `NAME.md` in GOLDEN_DIR, and TOUR as `tour`, is compared with
-//! `NAME.txt`; each case with `cli/NAME.txt`. With --update, the expected
+//! `NAME.txt`; each case with `cli/NAME.txt`; README, as mdv prints it at
+//! 80 columns, drawn as an SVG, with `readme.svg` in PICTURE_DIR. With --update, the expected
 //! files are written instead. A `.txt` without a document or a case fails.
 //!
 //! The visible form: `⟨b⟩` and the other letters for SGR attributes (b
@@ -16,6 +17,7 @@
 
 const std = @import("std");
 const build_options = @import("build_options");
+const svg = @import("svg.zig");
 
 const Form = struct {
     label: []const u8,
@@ -75,14 +77,14 @@ pub fn main(init: std.process.Init) !u8 {
     const io = init.io;
     const arena = init.arena.allocator();
     const args = try init.minimal.args.toSlice(arena);
-    if (args.len < 4) {
-        std.debug.print("usage: golden MDV GOLDEN_DIR TOUR [--update]\n", .{});
+    if (args.len < 6) {
+        std.debug.print("usage: golden MDV GOLDEN_DIR TOUR README PICTURE_DIR [--update]\n", .{});
         return 2;
     }
     // The command-line cases run from inside the golden directory.
     const mdv = try std.Io.Dir.cwd().realPathFileAlloc(io, args[1], arena);
     const dir_path = args[2];
-    const update = args.len > 4 and std.mem.eql(u8, args[4], "--update");
+    const update = args.len > 6 and std.mem.eql(u8, args[6], "--update");
 
     var inputs: std.ArrayList(struct { name: []const u8, path: []const u8 }) = .empty;
     try inputs.append(arena, .{ .name = "tour", .path = args[3] });
@@ -119,6 +121,25 @@ pub fn main(init: std.process.Init) !u8 {
         }
         total += 1;
         if (!try compare(io, arena, dir, input.name, actual.written(), update)) failed += 1;
+    }
+
+    // The readme shows a picture of itself, so it has to follow every change.
+    {
+        const result = try std.process.run(arena, io, .{
+            .argv = &.{ mdv, "-P", "-w", "80", "--color=always", args[4] },
+            .environ_map = &environ,
+            .timeout = case_timeout,
+        });
+        if (result.term != .exited or result.term.exited != 0 or result.stderr.len > 0) {
+            std.debug.print("readme: mdv failed: {s}\n", .{result.stderr});
+            return 1;
+        }
+        var picture: std.Io.Writer.Allocating = .init(arena);
+        try svg.render(arena, &picture.writer, "mdv readme.md", result.stdout);
+        total += 1;
+        var picture_dir = try std.Io.Dir.cwd().openDir(io, args[5], .{});
+        defer picture_dir.close(io);
+        if (!try comparePicture(io, arena, picture_dir, "readme.svg", picture.written(), update)) failed += 1;
     }
 
     var cli_dir = try dir.createDirPathOpen(io, "cli", .{ .open_options = .{ .iterate = true } });
@@ -220,6 +241,22 @@ fn compare(io: std.Io, arena: std.mem.Allocator, dir: std.Io.Dir, name: []const 
     };
     if (std.mem.eql(u8, expected, actual)) return true;
     report(name, expected, actual);
+    return false;
+}
+
+/// Writes or checks the readme's picture `name` in `dir`. True when it matches.
+fn comparePicture(io: std.Io, arena: std.mem.Allocator, dir: std.Io.Dir, name: []const u8, actual: []const u8, update: bool) !bool {
+    if (update) {
+        try dir.writeFile(io, .{ .sub_path = name, .data = actual });
+        std.debug.print("wrote {s}\n", .{name});
+        return true;
+    }
+    const expected = dir.readFileAlloc(io, name, arena, .unlimited) catch |err| switch (err) {
+        error.FileNotFound => "",
+        else => return err,
+    };
+    if (std.mem.eql(u8, expected, actual)) return true;
+    std.debug.print("{s}: out of date with the readme; run `just golden --update`\n", .{name});
     return false;
 }
 

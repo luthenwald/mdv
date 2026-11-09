@@ -25,11 +25,12 @@ pub fn build(b: *std.Build) void {
     options.addOption([]const u8, "version", @import("build.zig.zon").version);
     mod.addOptions("build_options", options);
     mod.addImport("md", md);
-    mod.addImport("width_table", generate(b, "gen_width", &.{
+    const width_table = generate(b, "gen_width", &.{
         "data/EastAsianWidth.txt",
         "data/emoji-data.txt",
         "data/DerivedGeneralCategory.txt",
-    }, "width_table.zig"));
+    }, "width_table.zig");
+    mod.addImport("width_table", width_table);
 
     const exe = b.addExecutable(.{
         .name = "mdv",
@@ -78,6 +79,10 @@ pub fn build(b: *std.Build) void {
         .root_module = b.createModule(.{
             .root_source_file = b.path("test/golden.zig"),
             .target = b.graph.host,
+            .imports = &.{.{ .name = "width", .module = b.createModule(.{
+                .root_source_file = b.path("src/term/width.zig"),
+                .imports = &.{.{ .name = "width_table", .module = width_table }},
+            }) }},
         }),
     });
     golden.root_module.addOptions("build_options", options);
@@ -97,6 +102,8 @@ fn goldenRun(b: *std.Build, golden: *std.Build.Step.Compile, mdv: *std.Build.Ste
     run.addArtifactArg(mdv);
     run.addDirectoryArg(b.path("test/golden"));
     run.addFileArg(b.path("examples/tour.md"));
+    run.addFileArg(b.path("readme.md"));
+    run.addDirectoryArg(b.path("examples"));
     run.has_side_effects = true;
     return run;
 }
