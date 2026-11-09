@@ -109,6 +109,8 @@ const Layout = struct {
     prefixes: std.ArrayList(Prefix) = .empty,
     prefix_width: usize = 0,
     bullet_depth: usize = 0,
+    /// Quotes and lists around the current block.
+    depth: usize = 0,
 
     // Lines and prefixes.
 
@@ -161,7 +163,15 @@ const Layout = struct {
     }
 
     fn block(l: *Layout, n: Index) !void {
-        switch (l.ast.tag(n)) {
+        const tag = l.ast.tag(n);
+        if (tag == .block_quote or tag == .list) {
+            if (l.depth == max_depth) return l.flat(n);
+            l.depth += 1;
+        }
+        defer if (tag == .block_quote or tag == .list) {
+            l.depth -= 1;
+        };
+        switch (tag) {
             .paragraph => try l.paragraph(n, .plain),
             .heading => {
                 const level = l.ast.level(n);
@@ -325,6 +335,24 @@ const Layout = struct {
         }
     }
 
+    /// The leaf blocks under `n`, in order and apart by blank lines, without
+    /// further gutters or markers: what a container nested deeper than
+    /// `max_depth` shows, since its prefixes would fill the line anyway.
+    /// Iterative, so no input can nest the layout deeper.
+    fn flat(l: *Layout, n: Index) Allocator.Error!void {
+        var pending: std.ArrayList(Index) = .empty;
+        try pushReversed(l.arena, &pending, l.ast.children(n));
+        var first = true;
+        while (pending.pop()) |child| switch (l.ast.tag(child)) {
+            .block_quote, .list, .list_item => try pushReversed(l.arena, &pending, l.ast.children(child)),
+            else => {
+                if (!first) try l.blank();
+                first = false;
+                try l.block(child);
+            },
+        };
+    }
+
     fn list(l: *Layout, n: Index) !void {
         const info = l.ast.list(n);
         const items = l.ast.children(n);
@@ -393,68 +421,89 @@ const Layout = struct {
         for (try l.wrapInto(pieces.items, l.room())) |content| try l.line(content);
     }
 
+    /// The inline content of `n` as pieces. Iterative, with a stack of the
+    /// open emphasis and links, so deep nesting cannot exhaust the stack.
     fn inlines(l: *Layout, out: *std.ArrayList(Piece), n: Index, style: Style, link: ?[]const u8) Allocator.Error!void {
-        for (l.ast.children(n)) |child| try l.inlineNode(out, child, style, link);
-    }
-
-    fn inlineNode(l: *Layout, out: *std.ArrayList(Piece), n: Index, style: Style, link: ?[]const u8) !void {
         const ast = l.ast;
-        switch (ast.tag(n)) {
-            .text => try l.words(out, ast.content(n), style, link),
-            .soft_break => try out.append(l.arena, .{ .kind = .space, .style = style, .link = link }),
-            .hard_break => try out.append(l.arena, .{ .kind = .newline }),
-            .code_span => {
-                // One word: a code span breaks only when it is wider than a line.
-                var tick = style;
-                tick.dim = true;
-                var text = style;
-                text.fg = accent;
-                const content = try l.clean(ast.content(n));
-                try out.appendSlice(l.arena, &.{
-                    .{ .kind = .text, .text = "`", .style = tick, .link = link },
-                    .{ .kind = .text, .text = try l.spacedTabs(content), .style = text, .link = link },
-                    .{ .kind = .text, .text = "`", .style = tick, .link = link },
-                });
-            },
-            .html_inline => {
-                var raw = style;
-                raw.dim = true;
-                try l.words(out, ast.content(n), raw, link);
-            },
-            .emphasis => {
-                var s = style;
-                s.italic = true;
-                try l.inlines(out, n, s, link);
-            },
-            .strong => {
-                var s = style;
-                s.bold = true;
-                try l.inlines(out, n, s, link);
-            },
-            .strikethrough => {
-                var s = style;
-                s.strike = true;
-                try l.inlines(out, n, s, link);
-            },
-            .link => {
-                const destination = ast.string(ast.link(n).destination);
-                const hyper = l.options.styled and !l.options.no_links and destination.len > 0;
-                var s = style;
-                s.underline = true;
-                s.fg = accent;
-                try l.inlines(out, n, s, if (hyper) destination else link);
-                if (!hyper and destination.len > 0 and !l.isAutolink(n, destination)) try l.target(out, destination, style, link);
-            },
-            .image => {
-                var alt: std.ArrayList(u8) = .empty;
-                try alt.appendSlice(l.arena, "[image: ");
-                try l.plainText(&alt, n);
-                try alt.append(l.arena, ']');
-                try l.words(out, alt.items, style, link);
-                const destination = ast.string(ast.link(n).destination);
-                if (destination.len > 0) try l.target(out, destination, style, link);
-            },
-            else => unreachable,
+        const Frame = struct {
+            children: []const Index,
+            next: usize = 0,
+            style: Style,
+            link: ?[]const u8,
+            /// A link whose target follows its text, in the outer style.
+            target: ?struct { destination: []const u8, style: Style, link: ?[]const u8 } = null,
+        };
+        var stack: std.ArrayList(Frame) = .empty;
+        try stack.append(l.arena, .{ .children = ast.children(n), .style = style, .link = link });
+        while (stack.items.len > 0) {
+            const top = &stack.items[stack.items.len - 1];
+            if (top.next == top.children.len) {
+                const done = stack.pop().?;
+                if (done.target) |t| try l.target(out, t.destination, t.style, t.link);
+                continue;
+            }
+            const child = top.children[top.next];
+            top.next += 1;
+            const outer = top.style;
+            const outer_link = top.link;
+            switch (ast.tag(child)) {
+                .text => try l.words(out, ast.content(child), outer, outer_link),
+                .soft_break => try out.append(l.arena, .{ .kind = .space, .style = outer, .link = outer_link }),
+                .hard_break => try out.append(l.arena, .{ .kind = .newline }),
+                .code_span => {
+                    // One word: a code span breaks only when it is wider than a line.
+                    var tick = outer;
+                    tick.dim = true;
+                    var text = outer;
+                    text.fg = accent;
+                    const content = try l.clean(ast.content(child));
+                    try out.appendSlice(l.arena, &.{
+                        .{ .kind = .text, .text = "`", .style = tick, .link = outer_link },
+                        .{ .kind = .text, .text = try l.spacedTabs(content), .style = text, .link = outer_link },
+                        .{ .kind = .text, .text = "`", .style = tick, .link = outer_link },
+                    });
+                },
+                .html_inline => {
+                    var raw = outer;
+                    raw.dim = true;
+                    try l.words(out, ast.content(child), raw, outer_link);
+                },
+                .emphasis, .strong, .strikethrough => |tag| {
+                    var inner = outer;
+                    switch (tag) {
+                        .emphasis => inner.italic = true,
+                        .strong => inner.bold = true,
+                        else => inner.strike = true,
+                    }
+                    try stack.append(l.arena, .{ .children = ast.children(child), .style = inner, .link = outer_link });
+                },
+                .link => {
+                    const destination = ast.string(ast.link(child).destination);
+                    const hyper = l.options.styled and !l.options.no_links and destination.len > 0;
+                    var inner = outer;
+                    inner.underline = true;
+                    inner.fg = accent;
+                    try stack.append(l.arena, .{
+                        .children = ast.children(child),
+                        .style = inner,
+                        .link = if (hyper) destination else outer_link,
+                        .target = if (!hyper and destination.len > 0 and !l.isAutolink(child, destination))
+                            .{ .destination = destination, .style = outer, .link = outer_link }
+                        else
+                            null,
+                    });
+                },
+                .image => {
+                    var alt: std.ArrayList(u8) = .empty;
+                    try alt.appendSlice(l.arena, "[image: ");
+                    try l.plainText(&alt, child);
+                    try alt.append(l.arena, ']');
+                    try l.words(out, alt.items, outer, outer_link);
+                    const destination = ast.string(ast.link(child).destination);
+                    if (destination.len > 0) try l.target(out, destination, outer, outer_link);
+                },
+                else => unreachable,
+            }
         }
     }
 
@@ -475,12 +524,15 @@ const Layout = struct {
             (std.mem.startsWith(u8, destination, "mailto:") and std.mem.eql(u8, text, destination[7..]));
     }
 
+    /// The text under `n`, without markup, for an image description.
     fn plainText(l: *Layout, out: *std.ArrayList(u8), n: Index) Allocator.Error!void {
-        for (l.ast.children(n)) |child| switch (l.ast.tag(child)) {
+        var pending: std.ArrayList(Index) = .empty;
+        try pushReversed(l.arena, &pending, l.ast.children(n));
+        while (pending.pop()) |child| switch (l.ast.tag(child)) {
             .text, .code_span => try out.appendSlice(l.arena, l.ast.content(child)),
             .soft_break, .hard_break => try out.append(l.arena, ' '),
             .html_inline => {},
-            else => try l.plainText(out, child),
+            else => try pushReversed(l.arena, &pending, l.ast.children(child)),
         };
     }
 
@@ -681,6 +733,17 @@ fn longestWord(pieces: []const Piece) usize {
         longest = @max(longest, run);
     }
     return longest;
+}
+
+/// Quotes and lists nested deeper than this lay out flat.
+const max_depth = 32;
+
+fn pushReversed(arena: Allocator, stack: *std.ArrayList(Index), nodes: []const Index) !void {
+    var i = nodes.len;
+    while (i > 0) {
+        i -= 1;
+        try stack.append(arena, nodes[i]);
+    }
 }
 
 fn spansWidth(spans: []const Span) usize {
@@ -889,6 +952,24 @@ test "a table's lines are dim and its header bold" {
         \\| 1 | 2 |
         \\+---+---+
     );
+}
+
+test "containers deeper than the limit lay out flat" {
+    const quotes: [2 * (max_depth + 2)]u8 = @bitCast(@as([max_depth + 2][2]u8, @splat("> ".*)));
+    const gutters: [2 * max_depth]u8 = @bitCast(@as([max_depth][2]u8, @splat("| ".*)));
+    try expectLayout(quotes ++ "deep\n>\n> back", .{ .width = 80, .styled = false, .ascii = true }, gutters ++ "deep\n|\n| back");
+}
+
+test "deep inline nesting needs no deep stack" {
+    var arena: std.heap.ArenaAllocator = .init(testing.allocator);
+    defer arena.deinit();
+    const a = arena.allocator();
+    var source: std.ArrayList(u8) = .empty;
+    for (0..20000) |_| try source.appendSlice(a, "*a **a ");
+    try source.append(a, 'b');
+    for (0..20000) |_| try source.appendSlice(a, " a** a*");
+    const lines = try document(a, try md.parse(a, source.items, .{}), .{ .width = 80 });
+    try testing.expect(lines.len > 1000);
 }
 
 test "ascii glyphs" {
