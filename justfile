@@ -6,7 +6,7 @@ _default:
 build:
    zig build
 
-# Runs the unit tests and the CommonMark examples.
+# Runs the unit tests, the CommonMark and GFM examples, and the golden files.
 test:
    zig build test spec
 
@@ -17,6 +17,10 @@ spec *args:
 # Runs cmark's pathological inputs, timed, or those whose names contain the argument.
 pathological *args:
    zig build pathological -- {{args}}
+
+# Compares mdv's output with the golden files in test/golden, or rewrites them with `--update`.
+golden *args:
+   zig build golden -- {{args}}
 
 # Runs mdv with the given arguments, such as `just run examples/tour.md`.
 run *args:

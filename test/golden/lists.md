@@ -1,0 +1,44 @@
+# Lists
+
+- tight
+- bullets
+  - change
+    - with
+      - depth
+        - and come back
+
+1. one
+2. two
+
+   a second paragraph makes the list loose
+
+3. three
+
+Numbers align on the right:
+
+98. ninety-eight
+99. ninety-nine
+100. one hundred
+
+- [ ] to do, with a long description that wraps under the text and not under the box
+- [x] done
+- not a task
+
+1. [ ] numbered task
+2. [x] done
+
+* item with code:
+
+  ```
+  indented under the item
+  ```
+
+* item with a quote:
+
+  > quoted
+
+-
+- an empty item above
+
+1) a parenthesis
+2) delimiter

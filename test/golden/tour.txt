@@ -1,0 +1,369 @@
+-- width 80
+⟨d⟩# ⟨/⟩⟨bu⟩The tour⟨/⟩
+
+This document shows every element mdv supports in its first version. A paragraph
+runs long enough to wrap at the measure, so you can see how soft breaks join
+into a single flowing line, and how the right edge settles.
+
+A line can end in a hard break
+like this one, or with two trailing spaces
+like this.
+
+⟨d⟩## ⟨/⟩⟨b⟩Inline⟨/⟩
+
+Text can be ⟨i⟩emphasized⟨/⟩, ⟨b⟩strong⟨/⟩, ⟨bi⟩both⟨/⟩, ⟨s⟩struck through⟨/⟩, or ⟨d⟩`⟨/⟩⟨34⟩code⟨/⟩⟨d⟩`⟨/⟩. Escapes keep
+*literal* stars, and entities such as © & — decode.
+
+A ⟨link https://commonmark.org⟩⟨u34⟩link with a title⟨/link⟩⟨/⟩, a ⟨link https://spec.commonmark.org/0.31.2/⟩⟨u34⟩reference link⟨/link⟩⟨/⟩, an autolink ⟨link https://ziglang.org⟩⟨u34⟩https://ziglang.org⟨/link⟩⟨/⟩, and an
+image [image: a small diagram] ⟨d⟩(diagram.png)⟨/⟩.
+
+⟨d⟩## ⟨/⟩⟨b⟩Setext heading, level two⟨/⟩
+
+⟨d⟩### ⟨/⟩⟨bd⟩Third level⟨/⟩
+
+⟨d⟩#### ⟨/⟩⟨bd⟩Fourth level⟨/⟩
+
+⟨d⟩## ⟨/⟩⟨b⟩Lists⟨/⟩
+
+• a bullet
+• another, with a nested list
+  ◦ second depth
+    ▪ third depth
+• back at the top
+
+ 8. eighth
+ 9. ninth
+10. tenth, so the numbers align
+
+☐ a task to do
+☑ a task done
+
+A loose list:
+
+• one paragraph item
+
+• another, with a second paragraph
+
+  that continues here.
+
+⟨d⟩## ⟨/⟩⟨b⟩Quotes⟨/⟩
+
+⟨d⟩│ ⟨/⟩A quote with ⟨i⟩emphasis⟨/⟩.
+⟨d⟩│⟨/⟩
+⟨d⟩│ │ ⟨/⟩And a nested one.
+
+⟨d⟩## ⟨/⟩⟨b⟩Code⟨/⟩
+
+⟨d⟩│ zig⟨/⟩
+⟨d⟩│ ⟨/⟩const std = @import("std");
+⟨d⟩│⟨/⟩
+⟨d⟩│ ⟨/⟩pub fn main(init: std.process.Init) !void {
+⟨d⟩│ ⟨/⟩    _ = init;
+⟨d⟩│ ⟨/⟩}
+
+⟨d⟩│ ⟨/⟩an indented code block
+⟨d⟩│ ⟨/⟩keeps its spacing
+
+⟨d⟩## ⟨/⟩⟨b⟩Tables⟨/⟩
+
+⟨d⟩┌─────────┬───────────┬───────┐⟨/⟩
+⟨d⟩│ ⟨/⟩⟨b⟩element⟨/⟩⟨d⟩ │ ⟨/⟩⟨b⟩rendering⟨/⟩⟨d⟩ │ ⟨/⟩⟨b⟩since⟨/⟩⟨d⟩ │⟨/⟩
+⟨d⟩├─────────┼───────────┼───────┤⟨/⟩
+⟨d⟩│ ⟨/⟩heading⟨d⟩ │ ⟨/⟩  bold   ⟨d⟩ │ ⟨/⟩   v1⟨d⟩ │⟨/⟩
+⟨d⟩│ ⟨/⟩table  ⟨d⟩ │ ⟨/⟩box lines⟨d⟩ │ ⟨/⟩   v1⟨d⟩ │⟨/⟩
+⟨d⟩│ ⟨/⟩math   ⟨d⟩ │ ⟨/⟩ unicode ⟨d⟩ │ ⟨/⟩later⟨d⟩ │⟨/⟩
+⟨d⟩└─────────┴───────────┴───────┘⟨/⟩
+
+⟨d⟩## ⟨/⟩⟨b⟩Breaks and raw HTML⟨/⟩
+
+⟨d⟩────────────────────────────────────────────────────────────────────────────────⟨/⟩
+
+⟨d⟩<div>raw html is shown as it is</div>⟨/⟩
+
+Wide characters wrap by display width: 日本語のテキスト, and emoji 🌿 count as
+two columns.
+-- width 40
+⟨d⟩# ⟨/⟩⟨bu⟩The tour⟨/⟩
+
+This document shows every element mdv
+supports in its first version. A
+paragraph runs long enough to wrap at
+the measure, so you can see how soft
+breaks join into a single flowing line,
+and how the right edge settles.
+
+A line can end in a hard break
+like this one, or with two trailing
+spaces
+like this.
+
+⟨d⟩## ⟨/⟩⟨b⟩Inline⟨/⟩
+
+Text can be ⟨i⟩emphasized⟨/⟩, ⟨b⟩strong⟨/⟩, ⟨bi⟩both⟨/⟩,
+⟨s⟩struck through⟨/⟩, or ⟨d⟩`⟨/⟩⟨34⟩code⟨/⟩⟨d⟩`⟨/⟩. Escapes keep
+*literal* stars, and entities such as ©
+& — decode.
+
+A ⟨link https://commonmark.org⟩⟨u34⟩link with a title⟨/link⟩⟨/⟩, a ⟨link https://spec.commonmark.org/0.31.2/⟩⟨u34⟩reference link⟨/link⟩⟨/⟩,
+an autolink ⟨link https://ziglang.org⟩⟨u34⟩https://ziglang.org⟨/link⟩⟨/⟩, and an
+image [image: a small diagram]
+⟨d⟩(diagram.png)⟨/⟩.
+
+⟨d⟩## ⟨/⟩⟨b⟩Setext heading, level two⟨/⟩
+
+⟨d⟩### ⟨/⟩⟨bd⟩Third level⟨/⟩
+
+⟨d⟩#### ⟨/⟩⟨bd⟩Fourth level⟨/⟩
+
+⟨d⟩## ⟨/⟩⟨b⟩Lists⟨/⟩
+
+• a bullet
+• another, with a nested list
+  ◦ second depth
+    ▪ third depth
+• back at the top
+
+ 8. eighth
+ 9. ninth
+10. tenth, so the numbers align
+
+☐ a task to do
+☑ a task done
+
+A loose list:
+
+• one paragraph item
+
+• another, with a second paragraph
+
+  that continues here.
+
+⟨d⟩## ⟨/⟩⟨b⟩Quotes⟨/⟩
+
+⟨d⟩│ ⟨/⟩A quote with ⟨i⟩emphasis⟨/⟩.
+⟨d⟩│⟨/⟩
+⟨d⟩│ │ ⟨/⟩And a nested one.
+
+⟨d⟩## ⟨/⟩⟨b⟩Code⟨/⟩
+
+⟨d⟩│ zig⟨/⟩
+⟨d⟩│ ⟨/⟩const std = @import("std");
+⟨d⟩│⟨/⟩
+⟨d⟩│ ⟨/⟩pub fn main(init: std.process.Init) !v
+⟨d⟩↪ ⟨/⟩oid {
+⟨d⟩│ ⟨/⟩    _ = init;
+⟨d⟩│ ⟨/⟩}
+
+⟨d⟩│ ⟨/⟩an indented code block
+⟨d⟩│ ⟨/⟩keeps its spacing
+
+⟨d⟩## ⟨/⟩⟨b⟩Tables⟨/⟩
+
+⟨d⟩┌─────────┬───────────┬───────┐⟨/⟩
+⟨d⟩│ ⟨/⟩⟨b⟩element⟨/⟩⟨d⟩ │ ⟨/⟩⟨b⟩rendering⟨/⟩⟨d⟩ │ ⟨/⟩⟨b⟩since⟨/⟩⟨d⟩ │⟨/⟩
+⟨d⟩├─────────┼───────────┼───────┤⟨/⟩
+⟨d⟩│ ⟨/⟩heading⟨d⟩ │ ⟨/⟩  bold   ⟨d⟩ │ ⟨/⟩   v1⟨d⟩ │⟨/⟩
+⟨d⟩│ ⟨/⟩table  ⟨d⟩ │ ⟨/⟩box lines⟨d⟩ │ ⟨/⟩   v1⟨d⟩ │⟨/⟩
+⟨d⟩│ ⟨/⟩math   ⟨d⟩ │ ⟨/⟩ unicode ⟨d⟩ │ ⟨/⟩later⟨d⟩ │⟨/⟩
+⟨d⟩└─────────┴───────────┴───────┘⟨/⟩
+
+⟨d⟩## ⟨/⟩⟨b⟩Breaks and raw HTML⟨/⟩
+
+⟨d⟩────────────────────────────────────────⟨/⟩
+
+⟨d⟩<div>raw html is shown as it is</div>⟨/⟩
+
+Wide characters wrap by display width:
+日本語のテキスト, and emoji 🌿 count as
+two columns.
+-- width 30, ascii
+⟨d⟩# ⟨/⟩⟨bu⟩The tour⟨/⟩
+
+This document shows every
+element mdv supports in its
+first version. A paragraph
+runs long enough to wrap at
+the measure, so you can see
+how soft breaks join into a
+single flowing line, and how
+the right edge settles.
+
+A line can end in a hard break
+like this one, or with two
+trailing spaces
+like this.
+
+⟨d⟩## ⟨/⟩⟨b⟩Inline⟨/⟩
+
+Text can be ⟨i⟩emphasized⟨/⟩,
+⟨b⟩strong⟨/⟩, ⟨bi⟩both⟨/⟩, ⟨s⟩struck through⟨/⟩,
+or ⟨d⟩`⟨/⟩⟨34⟩code⟨/⟩⟨d⟩`⟨/⟩. Escapes keep
+*literal* stars, and entities
+such as © & — decode.
+
+A ⟨link https://commonmark.org⟩⟨u34⟩link with a title⟨/link⟩⟨/⟩, a
+⟨link https://spec.commonmark.org/0.31.2/⟩⟨u34⟩reference link⟨/link⟩⟨/⟩, an autolink
+⟨link https://ziglang.org⟩⟨u34⟩https://ziglang.org⟨/link⟩⟨/⟩, and an
+image [image: a small diagram]
+⟨d⟩(diagram.png)⟨/⟩.
+
+⟨d⟩## ⟨/⟩⟨b⟩Setext heading, level two⟨/⟩
+
+⟨d⟩### ⟨/⟩⟨bd⟩Third level⟨/⟩
+
+⟨d⟩#### ⟨/⟩⟨bd⟩Fourth level⟨/⟩
+
+⟨d⟩## ⟨/⟩⟨b⟩Lists⟨/⟩
+
+* a bullet
+* another, with a nested list
+  - second depth
+    + third depth
+* back at the top
+
+ 8. eighth
+ 9. ninth
+10. tenth, so the numbers
+    align
+
+[ ] a task to do
+[x] a task done
+
+A loose list:
+
+* one paragraph item
+
+* another, with a second
+  paragraph
+
+  that continues here.
+
+⟨d⟩## ⟨/⟩⟨b⟩Quotes⟨/⟩
+
+⟨d⟩| ⟨/⟩A quote with ⟨i⟩emphasis⟨/⟩.
+⟨d⟩|⟨/⟩
+⟨d⟩| | ⟨/⟩And a nested one.
+
+⟨d⟩## ⟨/⟩⟨b⟩Code⟨/⟩
+
+⟨d⟩| zig⟨/⟩
+⟨d⟩| ⟨/⟩const std = @import("std");
+⟨d⟩|⟨/⟩
+⟨d⟩| ⟨/⟩pub fn main(init: std.proces
+⟨d⟩->⟨/⟩s.Init) !void {
+⟨d⟩| ⟨/⟩    _ = init;
+⟨d⟩| ⟨/⟩}
+
+⟨d⟩| ⟨/⟩an indented code block
+⟨d⟩| ⟨/⟩keeps its spacing
+
+⟨d⟩## ⟨/⟩⟨b⟩Tables⟨/⟩
+
+⟨b⟩element:⟨/⟩ heading
+⟨b⟩rendering:⟨/⟩ bold
+⟨b⟩since:⟨/⟩ v1
+
+⟨b⟩element:⟨/⟩ table
+⟨b⟩rendering:⟨/⟩ box lines
+⟨b⟩since:⟨/⟩ v1
+
+⟨b⟩element:⟨/⟩ math
+⟨b⟩rendering:⟨/⟩ unicode
+⟨b⟩since:⟨/⟩ later
+
+⟨d⟩## ⟨/⟩⟨b⟩Breaks and raw HTML⟨/⟩
+
+⟨d⟩------------------------------⟨/⟩
+
+⟨d⟩<div>raw html is shown as it i⟨/⟩
+⟨d⟩s</div>⟨/⟩
+
+Wide characters wrap by
+display width: 日本語のテキス
+ト, and emoji 🌿 count as two
+columns.
+-- width 80, no styles
+# The tour
+
+This document shows every element mdv supports in its first version. A paragraph
+runs long enough to wrap at the measure, so you can see how soft breaks join
+into a single flowing line, and how the right edge settles.
+
+A line can end in a hard break
+like this one, or with two trailing spaces
+like this.
+
+## Inline
+
+Text can be emphasized, strong, both, struck through, or `code`. Escapes keep
+*literal* stars, and entities such as © & — decode.
+
+A link with a title (https://commonmark.org), a reference link
+(https://spec.commonmark.org/0.31.2/), an autolink https://ziglang.org, and an
+image [image: a small diagram] (diagram.png).
+
+## Setext heading, level two
+
+### Third level
+
+#### Fourth level
+
+## Lists
+
+• a bullet
+• another, with a nested list
+  ◦ second depth
+    ▪ third depth
+• back at the top
+
+ 8. eighth
+ 9. ninth
+10. tenth, so the numbers align
+
+☐ a task to do
+☑ a task done
+
+A loose list:
+
+• one paragraph item
+
+• another, with a second paragraph
+
+  that continues here.
+
+## Quotes
+
+│ A quote with emphasis.
+│
+│ │ And a nested one.
+
+## Code
+
+│ zig
+│ const std = @import("std");
+│
+│ pub fn main(init: std.process.Init) !void {
+│     _ = init;
+│ }
+
+│ an indented code block
+│ keeps its spacing
+
+## Tables
+
+┌─────────┬───────────┬───────┐
+│ element │ rendering │ since │
+├─────────┼───────────┼───────┤
+│ heading │   bold    │    v1 │
+│ table   │ box lines │    v1 │
+│ math    │  unicode  │ later │
+└─────────┴───────────┴───────┘
+
+## Breaks and raw HTML
+
+────────────────────────────────────────────────────────────────────────────────
+
+<div>raw html is shown as it is</div>
+
+Wide characters wrap by display width: 日本語のテキスト, and emoji 🌿 count as
+two columns.

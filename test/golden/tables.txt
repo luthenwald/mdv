@@ -1,0 +1,278 @@
+-- width 80
+⟨d⟩# ⟨/⟩⟨bu⟩Tables⟨/⟩
+
+⟨d⟩┌─────────────┬────────┬───────┬──────┐⟨/⟩
+⟨d⟩│ ⟨/⟩⟨b⟩left⟨/⟩       ⟨d⟩ │ ⟨/⟩⟨b⟩center⟨/⟩⟨d⟩ │ ⟨/⟩⟨b⟩right⟨/⟩⟨d⟩ │ ⟨/⟩⟨b⟩none⟨/⟩⟨d⟩ │⟨/⟩
+⟨d⟩├─────────────┼────────┼───────┼──────┤⟨/⟩
+⟨d⟩│ ⟨/⟩a          ⟨d⟩ │ ⟨/⟩  b   ⟨d⟩ │ ⟨/⟩    c⟨d⟩ │ ⟨/⟩d   ⟨d⟩ │⟨/⟩
+⟨d⟩│ ⟨/⟩longer text⟨d⟩ │ `⟨/⟩⟨34⟩code⟨/⟩⟨d⟩` │ ⟨/⟩1,234⟨d⟩ │ ⟨/⟩⟨b⟩bold⟨/⟩⟨d⟩ │⟨/⟩
+⟨d⟩└─────────────┴────────┴───────┴──────┘⟨/⟩
+
+A table with a long cell wraps it, and each column keeps its longest word:
+
+⟨d⟩┌──────┬───────────────────────────────────────────────────────────────────────┐⟨/⟩
+⟨d⟩│ ⟨/⟩⟨b⟩name⟨/⟩⟨d⟩ │ ⟨/⟩⟨b⟩description⟨/⟩                                                          ⟨d⟩ │⟨/⟩
+⟨d⟩├──────┼───────────────────────────────────────────────────────────────────────┤⟨/⟩
+⟨d⟩│ ⟨/⟩mdv ⟨d⟩ │ ⟨/⟩a minimal markdown viewer for the terminal, which renders once to    ⟨d⟩ │⟨/⟩
+⟨d⟩│ ⟨/⟩    ⟨d⟩ │ ⟨/⟩standard output and leaves the rest to the pager                     ⟨d⟩ │⟨/⟩
+⟨d⟩│ ⟨/⟩less⟨d⟩ │ ⟨/⟩the pager                                                            ⟨d⟩ │⟨/⟩
+⟨d⟩└──────┴───────────────────────────────────────────────────────────────────────┘⟨/⟩
+
+At a narrow width, a wide table lists its rows:
+
+⟨d⟩┌───────────┬───────────────────────┬──────────┬───────────────────────────────┐⟨/⟩
+⟨d⟩│ ⟨/⟩⟨b⟩parameter⟨/⟩⟨d⟩ │ ⟨/⟩⟨b⟩type⟨/⟩                 ⟨d⟩ │ ⟨/⟩⟨b⟩default⟨/⟩ ⟨d⟩ │ ⟨/⟩⟨b⟩description⟨/⟩                  ⟨d⟩ │⟨/⟩
+⟨d⟩├───────────┼───────────────────────┼──────────┼───────────────────────────────┤⟨/⟩
+⟨d⟩│ ⟨/⟩width    ⟨d⟩ │ ⟨/⟩integer              ⟨d⟩ │ ⟨/⟩terminal⟨d⟩ │ ⟨/⟩the wrap width, at most      ⟨d⟩ │⟨/⟩
+⟨d⟩│ ⟨/⟩         ⟨d⟩ │ ⟨/⟩                     ⟨d⟩ │ ⟨/⟩        ⟨d⟩ │ ⟨/⟩eighty columns               ⟨d⟩ │⟨/⟩
+⟨d⟩│ ⟨/⟩paging   ⟨d⟩ │ ⟨/⟩auto, always or never⟨d⟩ │ ⟨/⟩auto    ⟨d⟩ │ ⟨/⟩whether output goes through  ⟨d⟩ │⟨/⟩
+⟨d⟩│ ⟨/⟩         ⟨d⟩ │ ⟨/⟩                     ⟨d⟩ │ ⟨/⟩        ⟨d⟩ │ ⟨/⟩the pager                    ⟨d⟩ │⟨/⟩
+⟨d⟩└───────────┴───────────────────────┴──────────┴───────────────────────────────┘⟨/⟩
+
+Wide characters take two columns:
+
+⟨d⟩┌──────┬────────┐⟨/⟩
+⟨d⟩│ ⟨/⟩⟨b⟩言語⟨/⟩⟨d⟩ │ ⟨/⟩⟨b⟩名前⟨/⟩  ⟨d⟩ │⟨/⟩
+⟨d⟩├──────┼────────┤⟨/⟩
+⟨d⟩│ ⟨/⟩Zig ⟨d⟩ │ ⟨/⟩ジグ  ⟨d⟩ │⟨/⟩
+⟨d⟩│ ⟨/⟩🦎  ⟨d⟩ │ ⟨/⟩lizard⟨d⟩ │⟨/⟩
+⟨d⟩└──────┴────────┘⟨/⟩
+
+• A table in a list:
+
+  ⟨d⟩┌───┬───┐⟨/⟩
+  ⟨d⟩│ ⟨/⟩⟨b⟩a⟨/⟩⟨d⟩ │ ⟨/⟩⟨b⟩b⟨/⟩⟨d⟩ │⟨/⟩
+  ⟨d⟩├───┼───┤⟨/⟩
+  ⟨d⟩│ ⟨/⟩1⟨d⟩ │ ⟨/⟩2⟨d⟩ │⟨/⟩
+  ⟨d⟩└───┴───┘⟨/⟩
+
+⟨d⟩│ ┌────────┬───────┐⟨/⟩
+⟨d⟩│ │ ⟨/⟩⟨b⟩quoted⟨/⟩⟨d⟩ │ ⟨/⟩⟨b⟩table⟨/⟩⟨d⟩ │⟨/⟩
+⟨d⟩│ ├────────┼───────┤⟨/⟩
+⟨d⟩│ │ ⟨/⟩x     ⟨d⟩ │ ⟨link https://example.org⟩⟨/⟩⟨u34⟩link⟨/link⟩⟨/⟩ ⟨d⟩ │⟨/⟩
+⟨d⟩│ └────────┴───────┘⟨/⟩
+
+⟨d⟩┌─────────────┬─────────┐⟨/⟩
+⟨d⟩│ ⟨/⟩⟨b⟩header only⟨/⟩⟨d⟩ │ ⟨/⟩⟨b⟩no body⟨/⟩⟨d⟩ │⟨/⟩
+⟨d⟩└─────────────┴─────────┘⟨/⟩
+
+⟨d⟩┌────────────────┬─────────┐⟨/⟩
+⟨d⟩│ ⟨/⟩⟨b⟩escaped | pipe⟨/⟩⟨d⟩ │ ⟨/⟩⟨bd⟩`⟨/⟩⟨b34⟩a | b⟨/⟩⟨bd⟩`⟨/⟩⟨d⟩ │⟨/⟩
+⟨d⟩├────────────────┼─────────┤⟨/⟩
+⟨d⟩│ ⟨/⟩one           ⟨d⟩ │ ⟨/⟩two    ⟨d⟩ │⟨/⟩
+⟨d⟩│ ⟨/⟩short         ⟨d⟩ │ ⟨/⟩       ⟨d⟩ │⟨/⟩
+⟨d⟩└────────────────┴─────────┘⟨/⟩
+-- width 40
+⟨d⟩# ⟨/⟩⟨bu⟩Tables⟨/⟩
+
+⟨d⟩┌─────────────┬────────┬───────┬──────┐⟨/⟩
+⟨d⟩│ ⟨/⟩⟨b⟩left⟨/⟩       ⟨d⟩ │ ⟨/⟩⟨b⟩center⟨/⟩⟨d⟩ │ ⟨/⟩⟨b⟩right⟨/⟩⟨d⟩ │ ⟨/⟩⟨b⟩none⟨/⟩⟨d⟩ │⟨/⟩
+⟨d⟩├─────────────┼────────┼───────┼──────┤⟨/⟩
+⟨d⟩│ ⟨/⟩a          ⟨d⟩ │ ⟨/⟩  b   ⟨d⟩ │ ⟨/⟩    c⟨d⟩ │ ⟨/⟩d   ⟨d⟩ │⟨/⟩
+⟨d⟩│ ⟨/⟩longer text⟨d⟩ │ `⟨/⟩⟨34⟩code⟨/⟩⟨d⟩` │ ⟨/⟩1,234⟨d⟩ │ ⟨/⟩⟨b⟩bold⟨/⟩⟨d⟩ │⟨/⟩
+⟨d⟩└─────────────┴────────┴───────┴──────┘⟨/⟩
+
+A table with a long cell wraps it, and
+each column keeps its longest word:
+
+⟨d⟩┌──────┬───────────────────────────────┐⟨/⟩
+⟨d⟩│ ⟨/⟩⟨b⟩name⟨/⟩⟨d⟩ │ ⟨/⟩⟨b⟩description⟨/⟩                  ⟨d⟩ │⟨/⟩
+⟨d⟩├──────┼───────────────────────────────┤⟨/⟩
+⟨d⟩│ ⟨/⟩mdv ⟨d⟩ │ ⟨/⟩a minimal markdown viewer for⟨d⟩ │⟨/⟩
+⟨d⟩│ ⟨/⟩    ⟨d⟩ │ ⟨/⟩the terminal, which renders  ⟨d⟩ │⟨/⟩
+⟨d⟩│ ⟨/⟩    ⟨d⟩ │ ⟨/⟩once to standard output and  ⟨d⟩ │⟨/⟩
+⟨d⟩│ ⟨/⟩    ⟨d⟩ │ ⟨/⟩leaves the rest to the pager ⟨d⟩ │⟨/⟩
+⟨d⟩│ ⟨/⟩less⟨d⟩ │ ⟨/⟩the pager                    ⟨d⟩ │⟨/⟩
+⟨d⟩└──────┴───────────────────────────────┘⟨/⟩
+
+At a narrow width, a wide table lists
+its rows:
+
+⟨b⟩parameter:⟨/⟩ width
+⟨b⟩type:⟨/⟩ integer
+⟨b⟩default:⟨/⟩ terminal
+⟨b⟩description:⟨/⟩ the wrap width, at most
+eighty columns
+
+⟨b⟩parameter:⟨/⟩ paging
+⟨b⟩type:⟨/⟩ auto, always or never
+⟨b⟩default:⟨/⟩ auto
+⟨b⟩description:⟨/⟩ whether output goes through
+the pager
+
+Wide characters take two columns:
+
+⟨d⟩┌──────┬────────┐⟨/⟩
+⟨d⟩│ ⟨/⟩⟨b⟩言語⟨/⟩⟨d⟩ │ ⟨/⟩⟨b⟩名前⟨/⟩  ⟨d⟩ │⟨/⟩
+⟨d⟩├──────┼────────┤⟨/⟩
+⟨d⟩│ ⟨/⟩Zig ⟨d⟩ │ ⟨/⟩ジグ  ⟨d⟩ │⟨/⟩
+⟨d⟩│ ⟨/⟩🦎  ⟨d⟩ │ ⟨/⟩lizard⟨d⟩ │⟨/⟩
+⟨d⟩└──────┴────────┘⟨/⟩
+
+• A table in a list:
+
+  ⟨d⟩┌───┬───┐⟨/⟩
+  ⟨d⟩│ ⟨/⟩⟨b⟩a⟨/⟩⟨d⟩ │ ⟨/⟩⟨b⟩b⟨/⟩⟨d⟩ │⟨/⟩
+  ⟨d⟩├───┼───┤⟨/⟩
+  ⟨d⟩│ ⟨/⟩1⟨d⟩ │ ⟨/⟩2⟨d⟩ │⟨/⟩
+  ⟨d⟩└───┴───┘⟨/⟩
+
+⟨d⟩│ ┌────────┬───────┐⟨/⟩
+⟨d⟩│ │ ⟨/⟩⟨b⟩quoted⟨/⟩⟨d⟩ │ ⟨/⟩⟨b⟩table⟨/⟩⟨d⟩ │⟨/⟩
+⟨d⟩│ ├────────┼───────┤⟨/⟩
+⟨d⟩│ │ ⟨/⟩x     ⟨d⟩ │ ⟨link https://example.org⟩⟨/⟩⟨u34⟩link⟨/link⟩⟨/⟩ ⟨d⟩ │⟨/⟩
+⟨d⟩│ └────────┴───────┘⟨/⟩
+
+⟨d⟩┌─────────────┬─────────┐⟨/⟩
+⟨d⟩│ ⟨/⟩⟨b⟩header only⟨/⟩⟨d⟩ │ ⟨/⟩⟨b⟩no body⟨/⟩⟨d⟩ │⟨/⟩
+⟨d⟩└─────────────┴─────────┘⟨/⟩
+
+⟨d⟩┌────────────────┬─────────┐⟨/⟩
+⟨d⟩│ ⟨/⟩⟨b⟩escaped | pipe⟨/⟩⟨d⟩ │ ⟨/⟩⟨bd⟩`⟨/⟩⟨b34⟩a | b⟨/⟩⟨bd⟩`⟨/⟩⟨d⟩ │⟨/⟩
+⟨d⟩├────────────────┼─────────┤⟨/⟩
+⟨d⟩│ ⟨/⟩one           ⟨d⟩ │ ⟨/⟩two    ⟨d⟩ │⟨/⟩
+⟨d⟩│ ⟨/⟩short         ⟨d⟩ │ ⟨/⟩       ⟨d⟩ │⟨/⟩
+⟨d⟩└────────────────┴─────────┘⟨/⟩
+-- width 30, ascii
+⟨d⟩# ⟨/⟩⟨bu⟩Tables⟨/⟩
+
+⟨b⟩left:⟨/⟩ a
+⟨b⟩center:⟨/⟩ b
+⟨b⟩right:⟨/⟩ c
+⟨b⟩none:⟨/⟩ d
+
+⟨b⟩left:⟨/⟩ longer text
+⟨b⟩center:⟨/⟩ ⟨d⟩`⟨/⟩⟨34⟩code⟨/⟩⟨d⟩`⟨/⟩
+⟨b⟩right:⟨/⟩ 1,234
+⟨b⟩none:⟨/⟩ ⟨b⟩bold⟨/⟩
+
+A table with a long cell wraps
+it, and each column keeps its
+longest word:
+
+⟨d⟩+------+---------------------+⟨/⟩
+⟨d⟩| ⟨/⟩⟨b⟩name⟨/⟩⟨d⟩ | ⟨/⟩⟨b⟩description⟨/⟩        ⟨d⟩ |⟨/⟩
+⟨d⟩+------+---------------------+⟨/⟩
+⟨d⟩| ⟨/⟩mdv ⟨d⟩ | ⟨/⟩a minimal markdown ⟨d⟩ |⟨/⟩
+⟨d⟩| ⟨/⟩    ⟨d⟩ | ⟨/⟩viewer for the     ⟨d⟩ |⟨/⟩
+⟨d⟩| ⟨/⟩    ⟨d⟩ | ⟨/⟩terminal, which    ⟨d⟩ |⟨/⟩
+⟨d⟩| ⟨/⟩    ⟨d⟩ | ⟨/⟩renders once to    ⟨d⟩ |⟨/⟩
+⟨d⟩| ⟨/⟩    ⟨d⟩ | ⟨/⟩standard output and⟨d⟩ |⟨/⟩
+⟨d⟩| ⟨/⟩    ⟨d⟩ | ⟨/⟩leaves the rest to ⟨d⟩ |⟨/⟩
+⟨d⟩| ⟨/⟩    ⟨d⟩ | ⟨/⟩the pager          ⟨d⟩ |⟨/⟩
+⟨d⟩| ⟨/⟩less⟨d⟩ | ⟨/⟩the pager          ⟨d⟩ |⟨/⟩
+⟨d⟩+------+---------------------+⟨/⟩
+
+At a narrow width, a wide
+table lists its rows:
+
+⟨b⟩parameter:⟨/⟩ width
+⟨b⟩type:⟨/⟩ integer
+⟨b⟩default:⟨/⟩ terminal
+⟨b⟩description:⟨/⟩ the wrap width,
+at most eighty columns
+
+⟨b⟩parameter:⟨/⟩ paging
+⟨b⟩type:⟨/⟩ auto, always or never
+⟨b⟩default:⟨/⟩ auto
+⟨b⟩description:⟨/⟩ whether output
+goes through the pager
+
+Wide characters take two
+columns:
+
+⟨d⟩+------+--------+⟨/⟩
+⟨d⟩| ⟨/⟩⟨b⟩言語⟨/⟩⟨d⟩ | ⟨/⟩⟨b⟩名前⟨/⟩  ⟨d⟩ |⟨/⟩
+⟨d⟩+------+--------+⟨/⟩
+⟨d⟩| ⟨/⟩Zig ⟨d⟩ | ⟨/⟩ジグ  ⟨d⟩ |⟨/⟩
+⟨d⟩| ⟨/⟩🦎  ⟨d⟩ | ⟨/⟩lizard⟨d⟩ |⟨/⟩
+⟨d⟩+------+--------+⟨/⟩
+
+* A table in a list:
+
+  ⟨d⟩+---+---+⟨/⟩
+  ⟨d⟩| ⟨/⟩⟨b⟩a⟨/⟩⟨d⟩ | ⟨/⟩⟨b⟩b⟨/⟩⟨d⟩ |⟨/⟩
+  ⟨d⟩+---+---+⟨/⟩
+  ⟨d⟩| ⟨/⟩1⟨d⟩ | ⟨/⟩2⟨d⟩ |⟨/⟩
+  ⟨d⟩+---+---+⟨/⟩
+
+⟨d⟩| +--------+-------+⟨/⟩
+⟨d⟩| | ⟨/⟩⟨b⟩quoted⟨/⟩⟨d⟩ | ⟨/⟩⟨b⟩table⟨/⟩⟨d⟩ |⟨/⟩
+⟨d⟩| +--------+-------+⟨/⟩
+⟨d⟩| | ⟨/⟩x     ⟨d⟩ | ⟨link https://example.org⟩⟨/⟩⟨u34⟩link⟨/link⟩⟨/⟩ ⟨d⟩ |⟨/⟩
+⟨d⟩| +--------+-------+⟨/⟩
+
+⟨d⟩+-------------+---------+⟨/⟩
+⟨d⟩| ⟨/⟩⟨b⟩header only⟨/⟩⟨d⟩ | ⟨/⟩⟨b⟩no body⟨/⟩⟨d⟩ |⟨/⟩
+⟨d⟩+-------------+---------+⟨/⟩
+
+⟨d⟩+----------------+---------+⟨/⟩
+⟨d⟩| ⟨/⟩⟨b⟩escaped | pipe⟨/⟩⟨d⟩ | ⟨/⟩⟨bd⟩`⟨/⟩⟨b34⟩a | b⟨/⟩⟨bd⟩`⟨/⟩⟨d⟩ |⟨/⟩
+⟨d⟩+----------------+---------+⟨/⟩
+⟨d⟩| ⟨/⟩one           ⟨d⟩ | ⟨/⟩two    ⟨d⟩ |⟨/⟩
+⟨d⟩| ⟨/⟩short         ⟨d⟩ | ⟨/⟩       ⟨d⟩ |⟨/⟩
+⟨d⟩+----------------+---------+⟨/⟩
+-- width 80, no styles
+# Tables
+
+┌─────────────┬────────┬───────┬──────┐
+│ left        │ center │ right │ none │
+├─────────────┼────────┼───────┼──────┤
+│ a           │   b    │     c │ d    │
+│ longer text │ `code` │ 1,234 │ bold │
+└─────────────┴────────┴───────┴──────┘
+
+A table with a long cell wraps it, and each column keeps its longest word:
+
+┌──────┬───────────────────────────────────────────────────────────────────────┐
+│ name │ description                                                           │
+├──────┼───────────────────────────────────────────────────────────────────────┤
+│ mdv  │ a minimal markdown viewer for the terminal, which renders once to     │
+│      │ standard output and leaves the rest to the pager                      │
+│ less │ the pager                                                             │
+└──────┴───────────────────────────────────────────────────────────────────────┘
+
+At a narrow width, a wide table lists its rows:
+
+┌───────────┬───────────────────────┬──────────┬───────────────────────────────┐
+│ parameter │ type                  │ default  │ description                   │
+├───────────┼───────────────────────┼──────────┼───────────────────────────────┤
+│ width     │ integer               │ terminal │ the wrap width, at most       │
+│           │                       │          │ eighty columns                │
+│ paging    │ auto, always or never │ auto     │ whether output goes through   │
+│           │                       │          │ the pager                     │
+└───────────┴───────────────────────┴──────────┴───────────────────────────────┘
+
+Wide characters take two columns:
+
+┌──────┬────────┐
+│ 言語 │ 名前   │
+├──────┼────────┤
+│ Zig  │ ジグ   │
+│ 🦎   │ lizard │
+└──────┴────────┘
+
+• A table in a list:
+
+  ┌───┬───┐
+  │ a │ b │
+  ├───┼───┤
+  │ 1 │ 2 │
+  └───┴───┘
+
+│ ┌────────┬────────────────────────────┐
+│ │ quoted │ table                      │
+│ ├────────┼────────────────────────────┤
+│ │ x      │ link (https://example.org) │
+│ └────────┴────────────────────────────┘
+
+┌─────────────┬─────────┐
+│ header only │ no body │
+└─────────────┴─────────┘
+
+┌────────────────┬─────────┐
+│ escaped | pipe │ `a | b` │
+├────────────────┼─────────┤
+│ one            │ two     │
+│ short          │         │
+└────────────────┴─────────┘

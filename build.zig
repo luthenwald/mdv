@@ -69,9 +69,31 @@ pub fn build(b: *std.Build) void {
     pathological_run.addPassthruArgs();
     b.step("pathological", "Run cmark's pathological inputs").dependOn(&pathological_run.step);
 
+    const golden = b.addExecutable(.{
+        .name = "golden",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("test/golden.zig"),
+            .target = b.graph.host,
+        }),
+    });
+    const golden_check = goldenRun(b, golden, exe);
+    const golden_run = goldenRun(b, golden, exe);
+    golden_run.addPassthruArgs();
+    b.step("golden", "Compare the output with the golden files, or --update them").dependOn(&golden_run.step);
+
     const test_step = b.step("test", "Run the tests");
     test_step.dependOn(&b.addRunArtifact(b.addTest(.{ .root_module = mod })).step);
     test_step.dependOn(&b.addRunArtifact(b.addTest(.{ .root_module = md })).step);
+    test_step.dependOn(&golden_check.step);
+}
+
+fn goldenRun(b: *std.Build, golden: *std.Build.Step.Compile, mdv: *std.Build.Step.Compile) *std.Build.Step.Run {
+    const run = b.addRunArtifact(golden);
+    run.addArtifactArg(mdv);
+    run.addDirectoryArg(b.path("test/golden"));
+    run.addFileArg(b.path("examples/tour.md"));
+    run.has_side_effects = true;
+    return run;
 }
 
 const Tables = struct { entity: *std.Build.Module, unicode: *std.Build.Module };
