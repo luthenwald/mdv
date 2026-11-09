@@ -41,6 +41,8 @@ const Glyphs = struct {
     vertical: []const u8,
     /// Stands in for control characters.
     replacement: []const u8,
+    /// Ends a shortened address.
+    ellipsis: []const u8,
 };
 
 const unicode_glyphs: Glyphs = .{
@@ -55,6 +57,7 @@ const unicode_glyphs: Glyphs = .{
     .horizontal = "─",
     .vertical = "│",
     .replacement = "\u{FFFD}",
+    .ellipsis = "…",
 };
 
 const ascii_glyphs: Glyphs = .{
@@ -69,6 +72,7 @@ const ascii_glyphs: Glyphs = .{
     .horizontal = "-",
     .vertical = "|",
     .replacement = "?",
+    .ellipsis = "...",
 };
 
 const dim: Style = .{ .dim = true };
@@ -462,10 +466,10 @@ const Layout = struct {
                     tick.dim = true;
                     var text = outer;
                     text.fg = accent;
-                    const content = try l.clean(ast.content(child));
+                    const content = try l.oneLine(try l.clean(ast.content(child)));
                     try out.appendSlice(l.arena, &.{
                         .{ .kind = .text, .text = "`", .style = tick, .link = outer_link },
-                        .{ .kind = .text, .text = try l.spacedTabs(content), .style = text, .link = outer_link },
+                        .{ .kind = .text, .text = content, .style = text, .link = outer_link },
                         .{ .kind = .text, .text = "`", .style = tick, .link = outer_link },
                     });
                 },
@@ -485,7 +489,9 @@ const Layout = struct {
                 },
                 .link => {
                     const destination = ast.string(ast.link(child).destination);
-                    const hyper = l.options.styled and !l.options.no_links and destination.len > 0;
+                    // Only an address with a scheme can be opened from a
+                    // terminal; a relative one is printed instead.
+                    const hyper = l.options.styled and !l.options.no_links and hasScheme(destination) and destination.len <= max_link_len;
                     var inner = outer;
                     inner.underline = true;
                     inner.fg = accent;
@@ -513,11 +519,20 @@ const Layout = struct {
         }
     }
 
-    /// ` (url)` in dim after a link or image.
+    /// ` (url)` in dim after a link or image, on one line. A `data:` address
+    /// is cut after its first comma, since its body is the data itself.
     fn target(l: *Layout, out: *std.ArrayList(Piece), destination: []const u8, style: Style, link: ?[]const u8) !void {
+        var shown = try l.oneLine(try l.clean(destination));
+        var tail: []const u8 = "";
+        if (std.ascii.startsWithIgnoreCase(shown, "data:")) {
+            if (std.mem.indexOfScalar(u8, shown, ',')) |comma| {
+                shown = shown[0 .. comma + 1];
+                tail = l.glyphs.ellipsis;
+            }
+        }
         try out.appendSlice(l.arena, &.{
             .{ .kind = .space, .style = style, .link = link },
-            .{ .kind = .text, .text = try std.fmt.allocPrint(l.arena, "({s})", .{try l.clean(destination)}), .style = dim },
+            .{ .kind = .text, .text = try std.mem.concat(l.arena, u8, &.{ "(", shown, tail, ")" }), .style = dim },
         });
     }
 
@@ -619,15 +634,18 @@ const Layout = struct {
                     space = null;
                     for (pieces[i..end]) |q| {
                         var rest = q.text;
+                        // Measured once; each cut takes its width off, so a
+                        // word of a million characters stays linear.
+                        var rest_width = width.ofString(rest);
                         while (rest.len > 0) {
-                            const rest_width = width.ofString(rest);
                             if (col + rest_width <= avail) {
                                 try current.append(l.arena, .{ .text = rest, .style = q.style, .link = q.link });
                                 col += rest_width;
                                 break;
                             }
                             const len = cut(rest, avail -| col);
-                            if (len == 0 or (col > 0 and width.ofString(rest[0..len]) > avail - col)) {
+                            const part_width = width.ofString(rest[0..len]);
+                            if (len == 0 or (col > 0 and part_width > avail - col)) {
                                 try out.append(l.arena, try current.toOwnedSlice(l.arena));
                                 col = 0;
                                 continue;
@@ -636,6 +654,7 @@ const Layout = struct {
                             try out.append(l.arena, try current.toOwnedSlice(l.arena));
                             col = 0;
                             rest = rest[len..];
+                            rest_width -= part_width;
                         }
                     }
                     i = end;
@@ -714,14 +733,28 @@ const Layout = struct {
         return out;
     }
 
-    /// Tabs to single spaces, for code spans.
-    fn spacedTabs(l: *Layout, s: []const u8) ![]const u8 {
-        if (std.mem.indexOfScalar(u8, s, '\t') == null) return s;
+    /// Tabs and line feeds to single spaces, for text that is laid out as
+    /// one piece: code spans and shown addresses.
+    fn oneLine(l: *Layout, s: []const u8) ![]const u8 {
+        if (std.mem.indexOfAny(u8, s, "\t\n") == null) return s;
         const out = try l.arena.dupe(u8, s);
         std.mem.replaceScalar(u8, out, '\t', ' ');
+        std.mem.replaceScalar(u8, out, '\n', ' ');
         return out;
     }
 };
+
+/// The longest address that becomes a hyperlink; terminals cap near this.
+const max_link_len = 2048;
+
+/// Whether `s` starts with a URI scheme, `[a-zA-Z][a-zA-Z0-9+.-]{1,31}:`,
+/// as the autolink grammar has it.
+fn hasScheme(s: []const u8) bool {
+    if (s.len == 0 or !std.ascii.isAlphabetic(s[0])) return false;
+    var i: usize = 1;
+    while (i < s.len and i < 32 and (std.ascii.isAlphanumeric(s[i]) or s[i] == '+' or s[i] == '.' or s[i] == '-')) i += 1;
+    return i >= 2 and i < s.len and s[i] == ':';
+}
 
 /// The longest start of `s`, in bytes, that fits in `columns`. At least one
 /// code point, even when that one is wider.
@@ -1108,9 +1141,20 @@ test "ascii glyphs" {
 }
 
 test "links: hyperlinks when styled, the target in parentheses otherwise" {
-    try expectLayout("[a](u)", .{ .width = 20 }, "⟨uc@u⟩a⟨/⟩");
-    try expectLayout("[a](u)", .{ .width = 20, .no_links = true }, "⟨uc⟩a⟨/⟩ ⟨d⟩(u)⟨/⟩");
+    try expectLayout("[a](https://u)", .{ .width = 20 }, "⟨uc@https://u⟩a⟨/⟩");
+    try expectLayout("[a](https://u)", .{ .width = 20, .no_links = true }, "⟨uc⟩a⟨/⟩ ⟨d⟩(https://u)⟨/⟩");
     try expectLayout("[a b](u) <http://x> <m@x.org>", .{ .width = 40, .styled = false }, "a b (u) http://x m@x.org");
+}
+
+test "only an address with a scheme is a hyperlink" {
+    try expectLayout("[a](rel.md) [b](#top) [c](mailto:x@y) [d](x-app://z)", .{ .width = 60 }, "⟨uc⟩a⟨/⟩ ⟨d⟩(rel.md)⟨/⟩ ⟨uc⟩b⟨/⟩ ⟨d⟩(#top)⟨/⟩ ⟨uc@mailto:x@y⟩c⟨/⟩ ⟨uc@x-app://z⟩d⟨/⟩");
+    try testing.expect(hasScheme("https://x") and hasScheme("ab:") and !hasScheme("a:") and !hasScheme("1a:x") and !hasScheme("rel.md"));
+}
+
+test "a shown address stays on one line and data is cut short" {
+    try expectLayout("![i](u&#10;v&#9;w)", .{ .width = 40, .styled = false }, "[image: i] (u v w)");
+    try expectLayout("![i](data:image/png;base64,AAAAAAAA)", .{ .width = 50, .styled = false }, "[image: i] (data:image/png;base64,…)");
+    try expectLayout("`a\tb`", .{ .width = 20, .styled = false }, "`a b`");
 }
 
 test "images show their description and target" {
@@ -1135,13 +1179,21 @@ test "any input lays out without sending control characters" {
             defer arena.deinit();
             const a = arena.allocator();
             const ast = try md.parse(a, source, .{});
-            for ([_]u16{ 1, 7, 30, 80 }) |w| for ([_]bool{ false, true }) |ascii| {
-                const lines = try document(a, ast, .{ .width = w, .ascii = ascii });
+            const forms = [_]Options{
+                .{ .width = 1 },                    .{ .width = 7, .ascii = true },
+                .{ .width = 30 },                   .{ .width = 30, .no_links = true },
+                .{ .width = 30, .styled = false },  .{ .width = 80, .ascii = true },
+                .{ .width = 80, .no_links = true }, .{ .width = 80, .styled = false },
+            };
+            for (forms) |form| {
+                const lines = try document(a, ast, form);
+                // A line is one line: no span may hold a line feed or a tab.
+                for (lines) |row| for (row) |s| if (std.mem.indexOfAny(u8, s.text, "\n\t") != null) return error.LineBreakInSpan;
                 var out: std.Io.Writer.Allocating = .init(a);
-                const emitter: emit.Emitter = .{ .styled = true, .colors = true };
+                const emitter: emit.Emitter = .{ .styled = form.styled, .colors = true };
                 for (lines) |row| try emitter.line(&out.writer, row);
                 try expectOnlyOurEscapes(out.written());
-            };
+            }
         }
     }.one, .{ .corpus = md.fuzz_corpus });
 }
