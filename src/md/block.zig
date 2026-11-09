@@ -307,7 +307,9 @@ const Parser = struct {
         switch (o.tag) {
             .document, .list => return .matched,
             .heading, .thematic_break => return .failed,
-            .paragraph, .table => return if (p.blank) .failed else .matched,
+            .paragraph => return if (p.blank) .failed else .matched,
+            // A row without cells, such as a lone pipe, ends a table.
+            .table => return if (p.blank or scan.Cells.count(p.line[p.next_nonspace..]) == 0) .failed else .matched,
             .html_block => return if (p.blank and o.html_kind >= 6) .failed else .matched,
             .block_quote => {
                 if (p.indented or p.peek(p.next_nonspace) != '>') return .failed;
@@ -417,7 +419,6 @@ const Parser = struct {
                         return .leaf;
                     }
                 }
-                if (p.gfm and try p.tableStart(rest)) return .leaf;
             }
 
             // A line such as `- - - … x` would be scanned again from each
@@ -450,6 +451,10 @@ const Parser = struct {
             p.open.items[d].padding = item.padding;
             return .container;
         }
+
+        // The table extension comes after every core block, as in cmark-gfm,
+        // so `- | -` under a paragraph starts a list.
+        if (p.gfm and !p.indented and container_tag == .paragraph and try p.tableStart(rest)) return .leaf;
 
         if (p.indented and p.tip().tag != .paragraph and !p.blank) {
             p.advanceOffset(4, true);
@@ -620,10 +625,12 @@ const Parser = struct {
 
     /// A table opens when a paragraph's last line is a header row and this
     /// line a delimiter row with as many cells. The lines before the header
-    /// stay a paragraph.
+    /// stay a paragraph, after any link reference definitions at its start,
+    /// which are taken first so that none of their lines can be the header.
     fn tableStart(p: *Parser, rest: []const u8) !bool {
         const columns = scan.delimiterRow(rest) orelse return false;
         const o = p.tip();
+        _ = try p.takeDefinitions(&o.content_start, @intCast(p.text.items.len));
         const body = std.mem.trimEnd(u8, p.text.items[o.content_start..], "\n");
         const header_at: u32 = if (std.mem.lastIndexOfScalar(u8, body, '\n')) |i| @intCast(i + 1) else 0;
         if (scan.Cells.count(body[header_at..]) != columns) return false;

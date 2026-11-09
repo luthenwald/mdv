@@ -353,3 +353,17 @@ test "tables" {
     // Block starts end a table; extra cells are dropped.
     try expectHtml("a\n|-\nb | c\n> q\n", "<table>\n<thead>\n<tr>\n<th>a</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>b</td>\n</tr>\n</tbody>\n</table>\n<blockquote>\n<p>q</p>\n</blockquote>\n");
 }
+
+test "table edges as cmark-gfm has them" {
+    // A pipe right after a backslash stays in its cell, whatever comes
+    // before; `\\|` is then an escaped backslash and an escaped pipe.
+    try expectHtml("| a \\\\| b |\n| - |\n", "<table>\n<thead>\n<tr>\n<th>a | b</th>\n</tr>\n</thead>\n</table>\n");
+    // A list marker wins over a delimiter row.
+    try expectHtml("a | b\n- | -\n", "<p>a | b</p>\n<ul>\n<li>| -</li>\n</ul>\n");
+    // Definitions are taken before the header line is chosen.
+    try expectHtml("[a]:\n/u\n|-|\n", "<p>|-|</p>\n");
+    // A lone pipe has no cells: no header, and the end of a table.
+    try expectHtml("|\n|-\n", "<p>|\n|-</p>\n");
+    try expectHtml("| a |\n|-|\n|\nx\n", "<table>\n<thead>\n<tr>\n<th>a</th>\n</tr>\n</thead>\n</table>\n<p>|\nx</p>\n");
+    try expectHtml("||\n|-|\n", "<table>\n<thead>\n<tr>\n<th></th>\n</tr>\n</thead>\n</table>\n");
+}

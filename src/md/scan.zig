@@ -374,15 +374,16 @@ pub fn linkTitle(s: []const u8, pos: usize) ?Part {
     return null;
 }
 
-/// The cells of a table row: the line trimmed, without a leading pipe or an
-/// unescaped trailing one, split at unescaped pipes. A backslash takes the
-/// byte after it along, so `\\|` stays inside a cell. A row without
-/// content still has one empty cell.
+/// The cells of a table row: the line trimmed, without a leading pipe or a
+/// trailing one, split at pipes. A pipe directly after a backslash stays
+/// inside its cell, however many backslashes come before, as cmark-gfm has
+/// it; the inline pass later reads `\\` as one backslash. A row that is
+/// nothing or a lone pipe has no cells, while `||` has one empty cell.
 pub const Cells = struct {
     line: []const u8,
     pos: usize,
     end: usize,
-    done: bool = false,
+    done: bool,
 
     pub fn init(line: []const u8) Cells {
         var start: usize = 0;
@@ -390,17 +391,16 @@ pub const Cells = struct {
         while (start < end and isWhitespace(line[start])) start += 1;
         while (end > start and isWhitespace(line[end - 1])) end -= 1;
         if (start < end and line[start] == '|') start += 1;
-        if (end > start and line[end - 1] == '|' and !isEscaped(line, end - 1, start)) end -= 1;
-        return .{ .line = line, .pos = start, .end = end };
+        const empty = start == end;
+        if (end > start and line[end - 1] == '|' and !(end >= 2 and line[end - 2] == '\\')) end -= 1;
+        return .{ .line = line, .pos = start, .end = end, .done = empty };
     }
 
     /// The next cell, trimmed, as offsets into the line.
     pub fn next(c: *Cells) ?[2]usize {
         if (c.done) return null;
         var i = c.pos;
-        while (i < c.end and c.line[i] != '|') : (i += 1) {
-            if (c.line[i] == '\\' and i + 1 < c.end) i += 1;
-        }
+        while (i < c.end and !(c.line[i] == '|' and !(i > 0 and c.line[i - 1] == '\\'))) i += 1;
         var a = c.pos;
         var b = i;
         while (a < b and isWhitespace(c.line[a])) a += 1;
@@ -417,15 +417,9 @@ pub const Cells = struct {
     }
 };
 
-/// Whether the byte at `i` follows an odd number of backslashes.
-fn isEscaped(s: []const u8, i: usize, start: usize) bool {
-    var j = i;
-    while (j > start and s[j - 1] == '\\') j -= 1;
-    return (i - j) % 2 == 1;
-}
-
-/// A table's delimiter row, such as `| :-- | :-: |`: every cell is dashes
-/// with an optional colon at either end. Returns the number of columns.
+/// A table's delimiter row, such as `| :-- | :-: |`: one or more cells,
+/// each dashes with an optional colon at either end. Returns the number
+/// of columns.
 pub fn delimiterRow(line: []const u8) ?usize {
     var cells = Cells.init(line);
     var n: usize = 0;
@@ -440,7 +434,7 @@ pub fn delimiterRow(line: []const u8) ?usize {
         if (i != cell.len) return null;
         n += 1;
     }
-    return n;
+    return if (n > 0) n else null;
 }
 
 pub const Autolink = struct {
@@ -582,16 +576,20 @@ test autolink {
 }
 
 test Cells {
-    const line = " | a | b \\| c |` d \\\\|";
+    const line = " | a | b \\| c |` d \\\\| e |";
     var cells = Cells.init(line);
     try testing.expectEqualStrings("a", line[cells.next().?[0]..][0..1]);
     const second = cells.next().?;
     try testing.expectEqualStrings("b \\| c", line[second[0]..second[1]]);
     const third = cells.next().?;
-    try testing.expectEqualStrings("` d \\\\", line[third[0]..third[1]]);
+    try testing.expectEqualStrings("` d \\\\| e", line[third[0]..third[1]]);
     try testing.expectEqual(null, cells.next());
-    try testing.expectEqual(1, Cells.count("|"));
+    try testing.expectEqual(0, Cells.count("|"));
+    try testing.expectEqual(0, Cells.count("  "));
+    try testing.expectEqual(1, Cells.count("||"));
+    try testing.expectEqual(1, Cells.count("| |"));
     try testing.expectEqual(2, Cells.count("a | b"));
+    try testing.expectEqual(1, Cells.count("a \\|"));
 }
 
 test delimiterRow {
@@ -600,4 +598,5 @@ test delimiterRow {
     try testing.expectEqual(2, delimiterRow("-|-"));
     try testing.expectEqual(null, delimiterRow("| --- | x |"));
     try testing.expectEqual(null, delimiterRow("| :: |"));
+    try testing.expectEqual(null, delimiterRow("|"));
 }
