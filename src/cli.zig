@@ -28,7 +28,8 @@ pub const usage_text =
     \\
     \\renders markdown for the terminal. with no file, or "-", reads standard input.
     \\
-    \\  -w, --width N                 wrap width (default: terminal, at most 80)
+    \\  -w, --width N                 wrap width; the default is the terminal's,
+    \\                                at most 80, and an explicit width may go past 80
     \\      --color auto|always|never
     \\      --paging auto|always|never
     \\  -P                            same as --paging=never
@@ -36,6 +37,15 @@ pub const usage_text =
     \\      --ascii                   ascii glyphs only
     \\  -h, --help
     \\      --version
+    \\
+    \\environment
+    \\  MDV_PAGER, PAGER              the pager, in that order; otherwise less -RFX
+    \\  LESS                          set to FRX for the pager when it is missing
+    \\  NO_COLOR                      when set and not empty, attributes but no color
+    \\  COLUMNS                       the width when no terminal can be asked
+    \\  TERM                          dumb means no styles and no pager unless asked
+    \\
+    \\exit status: 0, 1 when a file could not be read, 2 for a usage error.
     \\
 ;
 

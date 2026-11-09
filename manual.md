@@ -15,7 +15,11 @@ mdv --help                the options in short
 mdv --version             the version
 ```
 
-With no file, mdv reads standard input.
+With no file, mdv reads standard input. When that is your terminal rather than a pipe or a file, you most likely forgot the file name, so mdv says so and exits instead of waiting for you to type a document.
+
+An option's value can follow it as a separate word or be attached: `--width 60`, `--width=60`, `-w 60` and `-w60` all mean the same. `-h` is short for `--help`. A `--` ends the options, so a file whose name starts with a dash follows it: `mdv -- -notes.md`.
+
+mdv runs on macOS, Linux and the other POSIX systems. It reads a file of up to 256 MiB; a larger one is reported as too large.
 
 ## How the elements look
 
@@ -35,7 +39,7 @@ A thematic break is a dim rule across the width.
 
 Tables are drawn in light box lines in dim, with the header in bold and each column aligned as its delimiter row asks (`:--`, `:-:`, `--:`). A table that does not fit gives its widest columns less room and wraps their cells, though no column gets narrower than its longest word. When even the longest words do not fit side by side, each row is listed instead, one `header: value` line per column, with a blank line between rows.
 
-Links are blue and underlined. In terminals that support hyperlinks they are clickable, and their addresses stay out of the text. Images show as `[image: description]`, followed by their address in dim.
+Links are blue and underlined. In terminals that support hyperlinks, a link whose address names a scheme, such as `https:`, `mailto:` or `file:`, is clickable and its address stays out of the text. A relative address such as `docs/manual.md` or `#section` has nothing a terminal could open, so it follows the link text in parentheses, in dim, as it does with `--no-links`. A `data:` address is shown only up to its first comma. Images show as `[image: description]`, followed by their address in dim.
 
 Raw HTML is shown as it is written, in dim.
 
@@ -69,7 +73,7 @@ Into a pipe or a file the output is plain text. `--color always` keeps the style
 
 ## Plain characters
 
-`--ascii` draws everything with ASCII characters, for terminals or fonts that lack the box-drawing and bullet glyphs:
+`--ascii` draws everything with ASCII characters, for terminals or fonts that lack the box-drawing and bullet glyphs, for a terminal that draws characters of ambiguous width, such as `•`, two columns wide, and for output that will be read under a locale without UTF-8:
 
 ```
 bullets      * - +        (• ◦ ▪)
@@ -82,7 +86,7 @@ tables       + - |        (┌ ─ │ and the other corners)
 
 ## Several files
 
-With several files, mdv renders them in order, as one document. Each file after the first starts after a blank line with its name in dim. Standard input, given as `-`, can be one of them.
+With several files, mdv renders them in order, as one document. Each file starts with its name in dim, and a blank line separates one from the next. Standard input, given as `-`, can be one of them, under the name `standard input`. A file that cannot be read is reported and left out, and the others still show their names.
 
 ## What mdv will not print
 
@@ -90,7 +94,7 @@ A document cannot change your terminal's state. Control characters other than ta
 
 ## Errors
 
-A file that cannot be read is reported on standard error, such as `mdv: notes.md: no such file`, and the other files are still rendered. The exit status is then 1. A mistake on the command line, such as an unknown option, is reported with a hint to run `mdv --help`, and exits with status 2. Otherwise the exit status is 0.
+A file that cannot be read is reported on standard error, such as `mdv: notes.md: no such file`, and the other files are still rendered. The exit status is then 1, as it is when the output could not be written. A mistake on the command line, such as an unknown option, is reported with a hint to run `mdv --help`, and exits with status 2; so does running mdv with no file while standard input is the terminal. Otherwise the exit status is 0, also when you quit the pager before the end.
 
 ## Environment
 
