@@ -214,9 +214,12 @@ const Layout = struct {
     /// `header: value` lines instead.
     fn table(l: *Layout, n: Index) !void {
         const rows = l.ast.children(n);
-        const columns = l.ast.children(rows[0]).len;
-        // Every cell laid out on one line first.
+        const headers = l.ast.children(rows[0]);
+        const columns = headers.len;
+        // Every cell laid out on one line first; a cell a short row lacks
+        // stays an empty line.
         const cells = try l.arena.alloc([]const Line, rows.len * columns);
+        @memset(cells, &.{&.{}});
         const natural = try l.arena.alloc(usize, columns);
         const longest = try l.arena.alloc(usize, columns);
         @memset(natural, 1);
@@ -263,10 +266,9 @@ const Layout = struct {
         try l.rule(widths, 0);
         for (rows, 0..) |row, r| {
             if (r == 1) try l.rule(widths, 1);
-            const contents = try l.arena.alloc([]const Line, columns);
+            const contents = cells[r * columns ..][0..columns];
             var height: usize = 1;
             for (l.ast.children(row), 0..) |cell, c| {
-                contents[c] = cells[r * columns + c];
                 if (widths[c] < natural[c]) {
                     var pieces: std.ArrayList(Piece) = .empty;
                     try l.inlines(&pieces, cell, if (r == 0) .{ .bold = true } else .plain, null);
@@ -281,11 +283,11 @@ const Layout = struct {
             for (0..height) |k| {
                 var spans: std.ArrayList(Span) = .empty;
                 try spans.append(l.arena, .{ .text = outer_left, .style = dim });
-                for (l.ast.children(row), 0..) |cell, c| {
+                for (headers, 0..) |header, c| {
                     if (c > 0) try spans.append(l.arena, .{ .text = inner, .style = dim });
                     const content: []const Span = if (k < contents[c].len) contents[c][k] else &.{};
                     const pad = widths[c] - spansWidth(content);
-                    const before: usize = switch (l.ast.alignment(cell)) {
+                    const before: usize = switch (l.ast.alignment(header)) {
                         .none, .left => 0,
                         .right => pad,
                         .center => pad / 2,
@@ -325,12 +327,15 @@ const Layout = struct {
         }
         for (rows[1..], 0..) |row, r| {
             if (r > 0) try l.blank();
-            for (headers, l.ast.children(row)) |header, cell| {
+            const cells = l.ast.children(row);
+            for (headers, 0..) |header, c| {
                 var pieces: std.ArrayList(Piece) = .empty;
                 try l.inlines(&pieces, header, .{ .bold = true }, null);
                 try pieces.append(l.arena, .{ .kind = .text, .text = ":", .style = .{ .bold = true } });
-                try pieces.append(l.arena, .{ .kind = .space });
-                try l.inlines(&pieces, cell, .plain, null);
+                if (c < cells.len) {
+                    try pieces.append(l.arena, .{ .kind = .space });
+                    try l.inlines(&pieces, cells[c], .plain, null);
+                }
                 for (try l.wrapInto(pieces.items, l.room())) |content| try l.line(content);
             }
         }
@@ -1051,6 +1056,18 @@ test "a table whose words do not fit lists its rows" {
         \\d
     );
     try expectLayout("| name | value |\n|-|-|", .{ .width = 8 }, "⟨b⟩name⟨/⟩\n⟨b⟩value⟨/⟩");
+}
+
+test "a short row leaves its missing cells empty" {
+    try expectLayout("| a | b |\n|-|-:|\n| 1 |\n| 2 | 3 |", plain,
+        \\┌───┬───┐
+        \\│ a │ b │
+        \\├───┼───┤
+        \\│ 1 │   │
+        \\│ 2 │ 3 │
+        \\└───┴───┘
+    );
+    try expectLayout("| name | value |\n|-|-|\n| a |", .{ .width = 10, .styled = false }, "name: a\nvalue:");
 }
 
 test "a table's lines are dim and its header bold" {

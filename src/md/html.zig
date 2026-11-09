@@ -136,11 +136,11 @@ const Renderer = struct {
                 const rows = ast.children(n);
                 try r.cr();
                 try r.lit("<table>\n<thead>\n");
-                try r.row(rows[0], "th");
+                try r.row(rows[0], rows[0], "th");
                 try r.lit("</thead>\n");
                 if (rows.len > 1) {
                     try r.lit("<tbody>\n");
-                    for (rows[1..]) |body| try r.row(body, "td");
+                    for (rows[1..]) |body| try r.row(body, rows[0], "td");
                     try r.lit("</tbody>\n");
                 }
                 try r.lit("</table>\n");
@@ -181,17 +181,19 @@ const Renderer = struct {
         }
     }
 
-    fn row(r: *Renderer, n: Ast.Index, cell: []const u8) !void {
+    /// A row with one `cell` per column of the `header`; a missing cell is empty.
+    fn row(r: *Renderer, n: Ast.Index, header: Ast.Index, cell: []const u8) !void {
+        const cells = r.ast.children(n);
         try r.lit("<tr>\n");
-        for (r.ast.children(n)) |c| {
+        for (r.ast.children(header), 0..) |column, i| {
             try r.lit("<");
             try r.lit(cell);
-            switch (r.ast.alignment(c)) {
+            switch (r.ast.alignment(column)) {
                 .none => {},
                 inline else => |a| try r.lit(" align=\"" ++ @tagName(a) ++ "\""),
             }
             try r.lit(">");
-            try r.inlines(c);
+            if (i < cells.len) try r.inlines(cells[i]);
             try r.lit("</");
             try r.lit(cell);
             try r.lit(">\n");

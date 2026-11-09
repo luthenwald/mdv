@@ -93,7 +93,9 @@ pub const Node = struct {
         /// A list's index in `lists`, a heading's level (1 to 6), a link's
         /// or image's index in `links`, for a list item 1 when it is an
         /// open task and 2 when it is a done one, or a table cell's
-        /// `Alignment`. A table's first row is its header.
+        /// `Alignment`. A table's first row is its header, and its cells
+        /// give the column count and alignments; a body row may have fewer
+        /// cells, never more.
         index: u32 = 0,
     };
 

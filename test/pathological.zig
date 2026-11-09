@@ -98,6 +98,14 @@ fn cases(a: std.mem.Allocator) ![]const Case {
     // the shape: many definitions, and a label that none of them defines.
     var references: std.ArrayList(u8) = .empty;
     for (1..25000) |i| try references.print(a, "[x{d}]: /url\n\n[x0]\n\n", .{i});
+    // Not in cmark's set: a wide table of short rows must cost its cells,
+    // not its rows times its columns.
+    var table: std.ArrayList(u8) = .empty;
+    for (0..1000) |_| try table.appendSlice(a, "|a");
+    try table.append(a, '\n');
+    for (0..1000) |_| try table.appendSlice(a, "|-");
+    try table.append(a, '\n');
+    for (0..2000) |_| try table.appendSlice(a, "x\n");
 
     return a.dupe(Case, &.{
         .{
@@ -219,6 +227,11 @@ fn cases(a: std.mem.Allocator) ![]const Case {
             .name = "references to a label nobody defines",
             .input = references.items,
             .expect = .{ .contains = try r(a, "<p>[x0]</p>\n", 24999) },
+        },
+        .{
+            .name = "wide table of short rows",
+            .input = table.items,
+            .expect = .{ .contains = try cat(a, &.{ "<tr>\n<td>x</td>\n", try r(a, "<td></td>\n", 999), "</tr>\n" }) },
         },
         .{
             // cmark checks this one through its CommonMark output.

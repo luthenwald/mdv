@@ -714,8 +714,9 @@ const Parser = struct {
         }
     }
 
-    /// The header row, the delimiter row, then the body rows, each row with
-    /// the header's number of cells.
+    /// The header row, the delimiter row, then the body rows. A row keeps the
+    /// cells it has, at most the header's number; a short row is not padded,
+    /// so a table costs its cells and not its rows times its columns.
     fn finalizeTable(p: *Parser, o: Open, end: u32) !void {
         var lines: std.ArrayList([2]u32) = .empty;
         var at = o.content_start;
@@ -748,11 +749,8 @@ const Parser = struct {
                 try ranges.append(p.arena, .{ line[0] + @as(u32, @intCast(c[0])), line[0] + @as(u32, @intCast(c[1])) });
             }
             cells.clearRetainingCapacity();
-            for (alignments.items, 0..) |alignment, column| {
-                const content: Ast.Range = if (column < ranges.items.len)
-                    try p.unescapePipes(ranges.items[column][0], ranges.items[column][1])
-                else
-                    .{};
+            for (ranges.items, alignments.items[0..ranges.items.len]) |range, alignment| {
+                const content = try p.unescapePipes(range[0], range[1]);
                 const cell = try p.newNode(.table_cell, .{ .parent = .{ .index = @backingInt(alignment) } });
                 try p.text_blocks.append(p.arena, .{ .node = cell, .content = content });
                 try cells.append(p.arena, cell);
