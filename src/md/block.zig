@@ -51,6 +51,7 @@ pub fn parse(arena: Allocator, source: []const u8, options: Options) Allocator.E
         .text = &p.text,
         .links = &p.links,
         .gfm = options.gfm,
+        .scratch = &p.inline_scratch,
     };
     var refs: inlines.References = .empty;
     try inlines.references(context, p.definitions.items, &refs);
@@ -166,6 +167,13 @@ const Parser = struct {
     /// of them was blank for list tightness.
     settled: u32 = 0,
     last_settled_blank: bool = false,
+    /// Working lists, reused: the inline parser's, and `finalizeTable`'s.
+    inline_scratch: inlines.Scratch = .{},
+    table_lines: std.ArrayList([2]u32) = .empty,
+    table_alignments: std.ArrayList(Ast.Alignment) = .empty,
+    table_rows: std.ArrayList(Index) = .empty,
+    table_ranges: std.ArrayList([2]u32) = .empty,
+    table_cells: std.ArrayList(Index) = .empty,
 
     line: []const u8 = "",
     line_number: u32 = 0,
@@ -764,7 +772,8 @@ const Parser = struct {
     /// cells it has, at most the header's number; a short row is not padded,
     /// so a table costs its cells and not its rows times its columns.
     fn finalizeTable(p: *Parser, o: Open, end: u32) !void {
-        var lines: std.ArrayList([2]u32) = .empty;
+        const lines = &p.table_lines;
+        lines.clearRetainingCapacity();
         var at = o.content_start;
         while (at < end) {
             const stop: u32 = @intCast(std.mem.indexOfScalarPos(u8, p.text.items[0..end], at, '\n') orelse end);
@@ -772,7 +781,8 @@ const Parser = struct {
             at = stop + 1;
         }
 
-        var alignments: std.ArrayList(Ast.Alignment) = .empty;
+        const alignments = &p.table_alignments;
+        alignments.clearRetainingCapacity();
         const delimiter = p.text.items[lines.items[1][0]..lines.items[1][1]];
         var marks = scan.Cells.init(delimiter);
         while (marks.next()) |c| {
@@ -782,9 +792,10 @@ const Parser = struct {
             try alignments.append(p.arena, if (left and right) .center else if (right) .right else if (left) .left else .none);
         }
 
-        var rows: std.ArrayList(Index) = .empty;
-        var ranges: std.ArrayList([2]u32) = .empty;
-        var cells: std.ArrayList(Index) = .empty;
+        const rows = &p.table_rows;
+        const ranges = &p.table_ranges;
+        const cells = &p.table_cells;
+        rows.clearRetainingCapacity();
         for (lines.items, 0..) |line, i| {
             if (i == 1) continue;
             // Cell ranges first: unescaping pipes appends to `text`.

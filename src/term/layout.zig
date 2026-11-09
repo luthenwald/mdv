@@ -38,7 +38,10 @@ const Glyphs = struct {
     /// the header and the bottom; the columns left, between cells and right.
     box: [3][3][]const u8,
     horizontal: []const u8,
-    vertical: []const u8,
+    /// The bars at a row's left edge, between its cells and at its right.
+    cell_left: []const u8,
+    cell_between: []const u8,
+    cell_right: []const u8,
     /// Stands in for control characters.
     replacement: []const u8,
     /// Ends a shortened address.
@@ -55,7 +58,9 @@ const unicode_glyphs: Glyphs = .{
     .task_done = "☑",
     .box = .{ .{ "┌", "┬", "┐" }, .{ "├", "┼", "┤" }, .{ "└", "┴", "┘" } },
     .horizontal = "─",
-    .vertical = "│",
+    .cell_left = "│ ",
+    .cell_between = " │ ",
+    .cell_right = " │",
     .replacement = "\u{FFFD}",
     .ellipsis = "…",
 };
@@ -70,7 +75,9 @@ const ascii_glyphs: Glyphs = .{
     .task_done = "[x]",
     .box = @splat(@splat("+")),
     .horizontal = "-",
-    .vertical = "|",
+    .cell_left = "| ",
+    .cell_between = " | ",
+    .cell_right = " |",
     .replacement = "?",
     .ellipsis = "...",
 };
@@ -103,7 +110,14 @@ const Piece = struct {
     text: []const u8 = "",
     style: Style = .plain,
     link: ?[]const u8 = null,
+    /// The display width of `text`, measured once when the piece is made.
+    width: usize = 0,
 };
+
+/// A text piece, measured.
+fn textPiece(text: []const u8, style: Style, link: ?[]const u8) Piece {
+    return .{ .kind = .text, .text = text, .style = style, .link = link, .width = width.ofString(text) };
+}
 
 const Layout = struct {
     arena: Allocator,
@@ -116,6 +130,11 @@ const Layout = struct {
     bullet_depth: usize = 0,
     /// Quotes and lists around the current block.
     depth: usize = 0,
+    /// Scratch for the pieces of one block, and for the spans of one line
+    /// while it is built; each finished line is copied out exactly, so
+    /// the arena holds no buffers outgrown along the way.
+    pieces: std.ArrayList(Piece) = .empty,
+    spans: std.ArrayList(Span) = .empty,
 
     // Lines and prefixes.
 
@@ -136,22 +155,37 @@ const Layout = struct {
     /// One output line: the prefixes, then `content`. A line without content
     /// loses its trailing spaces.
     fn line(l: *Layout, content: []const Span) !void {
-        var spans: std.ArrayList(Span) = .empty;
+        var total = content.len;
+        for (l.prefixes.items) |p| total += (if (p.used) p.rest else p.first).len;
+        const spans = try l.arena.alloc(Span, total);
+        var at: usize = 0;
         for (l.prefixes.items) |*p| {
-            try spans.appendSlice(l.arena, if (p.used) p.rest else p.first);
+            const part = if (p.used) p.rest else p.first;
+            @memcpy(spans[at..][0..part.len], part);
+            at += part.len;
             p.used = true;
         }
-        try spans.appendSlice(l.arena, content);
-        if (content.len == 0) trimEnd(&spans);
-        try l.lines.append(l.arena, spans.items);
+        @memcpy(spans[at..], content);
+        try l.lines.append(l.arena, if (content.len == 0) trimEnd(spans) else spans);
     }
 
     /// The blank line between blocks, inside the same prefixes.
     fn blank(l: *Layout) !void {
-        var spans: std.ArrayList(Span) = .empty;
-        for (l.prefixes.items) |p| try spans.appendSlice(l.arena, p.rest);
-        trimEnd(&spans);
-        try l.lines.append(l.arena, spans.items);
+        var total: usize = 0;
+        for (l.prefixes.items) |p| total += p.rest.len;
+        const spans = try l.arena.alloc(Span, total);
+        var at: usize = 0;
+        for (l.prefixes.items) |p| {
+            @memcpy(spans[at..][0..p.rest.len], p.rest);
+            at += p.rest.len;
+        }
+        try l.lines.append(l.arena, trimEnd(spans));
+    }
+
+    /// The scratch spans as a line of their own, and the scratch cleared.
+    fn takeSpans(l: *Layout) !Line {
+        defer l.spans.clearRetainingCapacity();
+        return l.arena.dupe(Span, l.spans.items);
     }
 
     fn span(l: *Layout, text: []const u8, style: Style) ![]const Span {
@@ -220,23 +254,28 @@ const Layout = struct {
         const rows = l.ast.children(n);
         const headers = l.ast.children(rows[0]);
         const columns = headers.len;
-        // Every cell laid out on one line first; a cell a short row lacks
-        // stays an empty line.
-        const cells = try l.arena.alloc([]const Line, rows.len * columns);
-        @memset(cells, &.{&.{}});
+        // Every cell as pieces, and laid out on one line first, per row the
+        // cells it has, so a table costs its cells and not rows times columns.
+        const pieces = try l.arena.alloc([]const []const Piece, rows.len);
+        const cells = try l.arena.alloc([][]const Line, rows.len);
         const natural = try l.arena.alloc(usize, columns);
         const longest = try l.arena.alloc(usize, columns);
         @memset(natural, 1);
         @memset(longest, 1);
         for (rows, 0..) |row, r| {
-            for (l.ast.children(row), 0..) |cell, c| {
-                var pieces: std.ArrayList(Piece) = .empty;
-                try l.inlines(&pieces, cell, if (r == 0) .{ .bold = true } else .plain, null);
-                const lines = try l.wrapInto(pieces.items, std.math.maxInt(u32));
+            const row_cells = l.ast.children(row);
+            const row_pieces = try l.arena.alloc([]const Piece, row_cells.len);
+            cells[r] = try l.arena.alloc([]const Line, row_cells.len);
+            for (row_cells, 0..) |cell, c| {
+                l.pieces.clearRetainingCapacity();
+                try l.inlines(&l.pieces, cell, if (r == 0) .{ .bold = true } else .plain, null);
+                const lines = try l.wrapInto(l.pieces.items, std.math.maxInt(u32));
                 for (lines) |content| natural[c] = @max(natural[c], spansWidth(content));
-                longest[c] = @max(longest[c], longestWord(pieces.items));
-                cells[r * columns + c] = lines;
+                longest[c] = @max(longest[c], longestWord(l.pieces.items));
+                row_pieces[c] = try l.arena.dupe(Piece, l.pieces.items);
+                cells[r][c] = lines;
             }
+            pieces[r] = row_pieces;
         }
 
         const borders = 3 * columns + 1;
@@ -268,40 +307,32 @@ const Layout = struct {
         };
 
         try l.rule(widths, 0);
-        for (rows, 0..) |row, r| {
+        for (0..rows.len) |r| {
             if (r == 1) try l.rule(widths, 1);
-            const contents = cells[r * columns ..][0..columns];
+            const contents = cells[r];
             var height: usize = 1;
-            for (l.ast.children(row), 0..) |cell, c| {
-                if (widths[c] < natural[c]) {
-                    var pieces: std.ArrayList(Piece) = .empty;
-                    try l.inlines(&pieces, cell, if (r == 0) .{ .bold = true } else .plain, null);
-                    contents[c] = try l.wrapInto(pieces.items, widths[c]);
-                }
-                height = @max(height, contents[c].len);
+            for (contents, pieces[r], 0..) |*content, cell_pieces, c| {
+                if (widths[c] < natural[c]) content.* = try l.wrapInto(cell_pieces, widths[c]);
+                height = @max(height, content.len);
             }
-            const bar = l.glyphs.vertical;
-            const outer_left = try std.mem.concat(l.arena, u8, &.{ bar, " " });
-            const inner = try std.mem.concat(l.arena, u8, &.{ " ", bar, " " });
-            const outer_right = try std.mem.concat(l.arena, u8, &.{ " ", bar });
             for (0..height) |k| {
-                var spans: std.ArrayList(Span) = .empty;
-                try spans.append(l.arena, .{ .text = outer_left, .style = dim });
+                try l.spans.append(l.arena, .{ .text = l.glyphs.cell_left, .style = dim });
                 for (headers, 0..) |header, c| {
-                    if (c > 0) try spans.append(l.arena, .{ .text = inner, .style = dim });
-                    const content: []const Span = if (k < contents[c].len) contents[c][k] else &.{};
+                    if (c > 0) try l.spans.append(l.arena, .{ .text = l.glyphs.cell_between, .style = dim });
+                    const content: []const Span = if (c < contents.len and k < contents[c].len) contents[c][k] else &.{};
                     const pad = widths[c] - spansWidth(content);
                     const before: usize = switch (l.ast.alignment(header)) {
                         .none, .left => 0,
                         .right => pad,
                         .center => pad / 2,
                     };
-                    if (before > 0) try spans.append(l.arena, .{ .text = try l.filler(before) });
-                    try spans.appendSlice(l.arena, content);
-                    if (pad > before) try spans.append(l.arena, .{ .text = try l.filler(pad - before) });
+                    if (before > 0) try l.spans.append(l.arena, .{ .text = try l.filler(before) });
+                    try l.spans.appendSlice(l.arena, content);
+                    if (pad > before) try l.spans.append(l.arena, .{ .text = try l.filler(pad - before) });
                 }
-                try spans.append(l.arena, .{ .text = outer_right, .style = dim });
-                try l.line(spans.items);
+                try l.spans.append(l.arena, .{ .text = l.glyphs.cell_right, .style = dim });
+                try l.line(l.spans.items);
+                l.spans.clearRetainingCapacity();
             }
         }
         try l.rule(widths, 2);
@@ -321,7 +352,8 @@ const Layout = struct {
     }
 
     /// A table too wide for the room: each body row as `header: value`
-    /// lines, rows apart by a blank line. Without body rows, the headers.
+    /// lines for the cells it has, rows apart by a blank line. Without body
+    /// rows, the headers.
     fn stacked(l: *Layout, n: Index) !void {
         const rows = l.ast.children(n);
         const headers = l.ast.children(rows[0]);
@@ -332,15 +364,14 @@ const Layout = struct {
         for (rows[1..], 0..) |row, r| {
             if (r > 0) try l.blank();
             const cells = l.ast.children(row);
-            for (headers, 0..) |header, c| {
-                var pieces: std.ArrayList(Piece) = .empty;
-                try l.inlines(&pieces, header, .{ .bold = true }, null);
-                try pieces.append(l.arena, .{ .kind = .text, .text = ":", .style = .{ .bold = true } });
-                if (c < cells.len) {
-                    try pieces.append(l.arena, .{ .kind = .space });
-                    try l.inlines(&pieces, cells[c], .plain, null);
-                }
-                for (try l.wrapInto(pieces.items, l.room())) |content| try l.line(content);
+            if (cells.len == 0) try l.line(&.{});
+            for (cells, headers[0..cells.len]) |cell, header| {
+                l.pieces.clearRetainingCapacity();
+                try l.inlines(&l.pieces, header, .{ .bold = true }, null);
+                try l.pieces.append(l.arena, textPiece(":", .{ .bold = true }, null));
+                try l.pieces.append(l.arena, .{ .kind = .space });
+                try l.inlines(&l.pieces, cell, .plain, null);
+                for (try l.wrapInto(l.pieces.items, l.room())) |content| try l.line(content);
             }
         }
     }
@@ -414,10 +445,11 @@ const Layout = struct {
         var first = true;
         while (rest.len > 0) {
             const len = cut(rest, avail);
-            var spans: std.ArrayList(Span) = .empty;
-            try spans.appendSlice(l.arena, if (first) gutter else mark);
-            try spans.append(l.arena, .{ .text = rest[0..len], .style = style });
-            try l.line(spans.items);
+            const lead = if (first) gutter else mark;
+            const spans = try l.arena.alloc(Span, lead.len + 1);
+            @memcpy(spans[0..lead.len], lead);
+            spans[lead.len] = .{ .text = rest[0..len], .style = style };
+            try l.line(spans);
             rest = rest[len..];
             first = false;
         }
@@ -426,9 +458,9 @@ const Layout = struct {
     // Inlines.
 
     fn paragraph(l: *Layout, n: Index, base: Style) !void {
-        var pieces: std.ArrayList(Piece) = .empty;
-        try l.inlines(&pieces, n, base, null);
-        for (try l.wrapInto(pieces.items, l.room())) |content| try l.line(content);
+        l.pieces.clearRetainingCapacity();
+        try l.inlines(&l.pieces, n, base, null);
+        for (try l.wrapInto(l.pieces.items, l.room())) |content| try l.line(content);
     }
 
     /// The inline content of `n` as pieces. Iterative, with a stack of the
@@ -468,9 +500,9 @@ const Layout = struct {
                     text.fg = accent;
                     const content = try l.oneLine(try l.clean(ast.content(child)));
                     try out.appendSlice(l.arena, &.{
-                        .{ .kind = .text, .text = "`", .style = tick, .link = outer_link },
-                        .{ .kind = .text, .text = content, .style = text, .link = outer_link },
-                        .{ .kind = .text, .text = "`", .style = tick, .link = outer_link },
+                        textPiece("`", tick, outer_link),
+                        textPiece(content, text, outer_link),
+                        textPiece("`", tick, outer_link),
                     });
                 },
                 .html_inline => {
@@ -532,7 +564,7 @@ const Layout = struct {
         }
         try out.appendSlice(l.arena, &.{
             .{ .kind = .space, .style = style, .link = link },
-            .{ .kind = .text, .text = try std.mem.concat(l.arena, u8, &.{ "(", shown, tail, ")" }), .style = dim },
+            textPiece(try std.mem.concat(l.arena, u8, &.{ "(", shown, tail, ")" }), dim, null),
         });
     }
 
@@ -577,14 +609,14 @@ const Layout = struct {
                 const len = if (decoded != null) n else 1;
                 const c = decoded orelse 0xFFFD;
                 if (i > start and canBreakBetween(previous, c)) {
-                    try out.append(l.arena, .{ .kind = .text, .text = text[start..i], .style = style, .link = link });
+                    try out.append(l.arena, textPiece(text[start..i], style, link));
                     try out.append(l.arena, .{ .kind = .joint, .style = style, .link = link });
                     start = i;
                 }
                 previous = c;
                 i = @min(text.len, i + len);
             }
-            try out.append(l.arena, .{ .kind = .text, .text = text[start..i], .style = style, .link = link });
+            try out.append(l.arena, textPiece(text[start..i], style, link));
         }
     }
 
@@ -597,7 +629,7 @@ const Layout = struct {
     /// than a line is cut. At least one line, even an empty one.
     fn wrapInto(l: *Layout, pieces: []const Piece, avail: usize) ![]const Line {
         var out: std.ArrayList(Line) = .empty;
-        var current: std.ArrayList(Span) = .empty;
+        const current = &l.spans;
         var col: usize = 0;
         // The space or joint before the next word, if the line goes on.
         var space: ?Piece = null;
@@ -614,7 +646,7 @@ const Layout = struct {
                     i += 1;
                 },
                 .newline => {
-                    try out.append(l.arena, try current.toOwnedSlice(l.arena));
+                    try out.append(l.arena, try l.takeSpans());
                     col = 0;
                     space = null;
                     i += 1;
@@ -622,10 +654,10 @@ const Layout = struct {
                 .text => {
                     var end = i;
                     var w: usize = 0;
-                    while (end < pieces.len and pieces[end].kind == .text) : (end += 1) w += width.ofString(pieces[end].text);
+                    while (end < pieces.len and pieces[end].kind == .text) : (end += 1) w += pieces[end].width;
                     const gap: usize = if (space) |s| @intFromBool(s.kind == .space) else 0;
                     if (col > 0 and col + gap + w > avail) {
-                        try out.append(l.arena, try current.toOwnedSlice(l.arena));
+                        try out.append(l.arena, try l.takeSpans());
                         col = 0;
                     } else if (space != null and space.?.kind == .space) {
                         try current.append(l.arena, .{ .text = " ", .style = space.?.style, .link = space.?.link });
@@ -634,9 +666,9 @@ const Layout = struct {
                     space = null;
                     for (pieces[i..end]) |q| {
                         var rest = q.text;
-                        // Measured once; each cut takes its width off, so a
-                        // word of a million characters stays linear.
-                        var rest_width = width.ofString(rest);
+                        // Each cut takes its width off the piece's, so a word
+                        // of a million characters stays linear.
+                        var rest_width = q.width;
                         while (rest.len > 0) {
                             if (col + rest_width <= avail) {
                                 try current.append(l.arena, .{ .text = rest, .style = q.style, .link = q.link });
@@ -646,12 +678,12 @@ const Layout = struct {
                             const len = cut(rest, avail -| col);
                             const part_width = width.ofString(rest[0..len]);
                             if (len == 0 or (col > 0 and part_width > avail - col)) {
-                                try out.append(l.arena, try current.toOwnedSlice(l.arena));
+                                try out.append(l.arena, try l.takeSpans());
                                 col = 0;
                                 continue;
                             }
                             try current.append(l.arena, .{ .text = rest[0..len], .style = q.style, .link = q.link });
-                            try out.append(l.arena, try current.toOwnedSlice(l.arena));
+                            try out.append(l.arena, try l.takeSpans());
                             col = 0;
                             rest = rest[len..];
                             rest_width -= part_width;
@@ -661,7 +693,7 @@ const Layout = struct {
                 },
             }
         }
-        if (current.items.len > 0 or out.items.len == 0) try out.append(l.arena, try current.toOwnedSlice(l.arena));
+        if (current.items.len > 0 or out.items.len == 0) try out.append(l.arena, try l.takeSpans());
         return out.items;
     }
 
@@ -791,7 +823,7 @@ fn longestWord(pieces: []const Piece) usize {
     var longest: usize = 0;
     var run: usize = 0;
     for (pieces) |p| {
-        run = if (p.kind == .text) run + width.ofString(p.text) else 0;
+        run = if (p.kind == .text) run + p.width else 0;
         longest = @max(longest, run);
     }
     return longest;
@@ -893,13 +925,14 @@ fn spansWidth(spans: []const Span) usize {
 }
 
 /// Drops trailing spaces, and spans left empty by that.
-fn trimEnd(spans: *std.ArrayList(Span)) void {
-    while (spans.items.len > 0) {
-        const last = &spans.items[spans.items.len - 1];
+fn trimEnd(spans: []Span) []Span {
+    var len = spans.len;
+    while (len > 0) : (len -= 1) {
+        const last = &spans[len - 1];
         last.text = std.mem.trimEnd(u8, last.text, " ");
-        if (last.text.len > 0) return;
-        _ = spans.pop();
+        if (last.text.len > 0) break;
     }
+    return spans[0..len];
 }
 
 const blanks: [256]u8 = @splat(' ');
@@ -1100,7 +1133,7 @@ test "a short row leaves its missing cells empty" {
         \\│ 2 │ 3 │
         \\└───┴───┘
     );
-    try expectLayout("| name | value |\n|-|-|\n| a |", .{ .width = 10, .styled = false }, "name: a\nvalue:");
+    try expectLayout("| name | value |\n|-|-|\n| a |\n| b | c |", .{ .width = 10, .styled = false }, "name: a\n\nname: b\nvalue: c");
 }
 
 test "a table's lines are dim and its header bold" {

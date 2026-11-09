@@ -33,6 +33,19 @@ pub const Context = struct {
     refs: *const References = &.empty,
     /// Strikethrough between one or two tildes.
     gfm: bool = true,
+    /// Lists reused from one text block to the next.
+    scratch: *Scratch,
+};
+
+/// The parser's working lists, kept by the caller so that their capacity
+/// serves every paragraph instead of being grown again for each.
+pub const Scratch = struct {
+    items: std.ArrayList(Item) = .empty,
+    delimiters: std.ArrayList(Delimiter) = .empty,
+    brackets: std.ArrayList(Bracket) = .empty,
+    backtick_runs: std.ArrayList(u32) = .empty,
+    /// A normalized label while it is looked up.
+    label: std.ArrayList(u8) = .empty,
 };
 
 /// Link reference definitions by normalized label.
@@ -54,9 +67,17 @@ pub fn references(c: Context, definitions: []const Ast.Definition, refs: *Refere
 }
 
 /// A label for matching: case folded, with runs of whitespace as one space
-/// and none at either end.
+/// and none at either end. New text, to be kept.
 pub fn normalizeLabel(arena: Allocator, raw: []const u8) Allocator.Error![]const u8 {
-    var out: std.ArrayList(u8) = try .initCapacity(arena, raw.len);
+    var out: std.ArrayList(u8) = .empty;
+    try normalizeLabelInto(&out, arena, raw);
+    return out.items;
+}
+
+/// `normalizeLabel` into `out`, which is cleared first.
+pub fn normalizeLabelInto(out: *std.ArrayList(u8), arena: Allocator, raw: []const u8) Allocator.Error!void {
+    out.clearRetainingCapacity();
+    try out.ensureTotalCapacity(arena, raw.len);
     var space = false;
     var i: usize = 0;
     while (i < raw.len) {
@@ -83,7 +104,6 @@ pub fn normalizeLabel(arena: Allocator, raw: []const u8) Allocator.Error![]const
             i += 1;
         }
     }
-    return out.items;
 }
 
 /// The range with backslash escapes and character references resolved. The
@@ -122,7 +142,23 @@ fn slice(c: Context, r: Range) []const u8 {
 /// Parses the inline content at `content` in `text` and returns the run of
 /// its top-level nodes in `extra`.
 pub fn parse(c: Context, content: Range) Allocator.Error!Range {
-    var p: Parser = .{ .c = c, .start = content.start, .pos = content.start, .end = content.start + content.len };
+    const s = c.scratch;
+    s.items.clearRetainingCapacity();
+    s.delimiters.clearRetainingCapacity();
+    s.brackets.clearRetainingCapacity();
+    s.backtick_runs.clearRetainingCapacity();
+    var p: Parser = .{
+        .c = c,
+        .start = content.start,
+        .pos = content.start,
+        .end = content.start + content.len,
+        .items = s.items,
+        .delimiters = s.delimiters,
+        .brackets = s.brackets,
+        .backtick_runs = s.backtick_runs,
+    };
+    // The lists go back with whatever room they gained.
+    defer s.* = .{ .items = p.items, .delimiters = p.delimiters, .brackets = p.brackets, .backtick_runs = p.backtick_runs, .label = s.label };
     while (p.pos < p.end) try p.step();
     try p.processEmphasis(none, &p.top);
     return p.emit();
@@ -735,8 +771,8 @@ const Parser = struct {
             for (slice(p.c, raw)) |b| chars += @intFromBool(b & 0xC0 != 0x80);
             if (chars > 999) return null;
         }
-        const key = try normalizeLabel(p.c.arena, slice(p.c, raw));
-        const link = p.c.refs.get(key) orelse return null;
+        try normalizeLabelInto(&p.c.scratch.label, p.c.arena, slice(p.c, raw));
+        const link = p.c.refs.get(p.c.scratch.label.items) orelse return null;
         p.pos = end;
         return link;
     }
