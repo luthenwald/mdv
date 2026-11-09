@@ -32,6 +32,8 @@ const Glyphs = struct {
     wrap: []const u8,
     rule: []const u8,
     bullets: [3][]const u8,
+    task_open: []const u8,
+    task_done: []const u8,
     /// Stands in for control characters.
     replacement: []const u8,
 };
@@ -42,6 +44,8 @@ const unicode_glyphs: Glyphs = .{
     .wrap = "↪ ",
     .rule = "─",
     .bullets = .{ "•", "◦", "▪" },
+    .task_open = "☐",
+    .task_done = "☑",
     .replacement = "\u{FFFD}",
 };
 
@@ -51,6 +55,8 @@ const ascii_glyphs: Glyphs = .{
     .wrap = "->",
     .rule = "-",
     .bullets = .{ "*", "-", "+" },
+    .task_open = "[ ]",
+    .task_done = "[x]",
     .replacement = "?",
 };
 
@@ -194,11 +200,14 @@ const Layout = struct {
         const digits = std.fmt.count("{d}", .{last});
         for (items, 0..) |item, i| {
             if (i > 0 and !info.tight) try l.blank();
+            // A task's box takes the bullet's place, or follows the number.
+            const box: []const u8 = if (l.ast.task(item)) |done| (if (done) l.glyphs.task_done else l.glyphs.task_open) else "";
             const marker = if (info.ordered) blk: {
                 const number = info.start + i;
                 const pad = spaces(digits - std.fmt.count("{d}", .{number}));
-                break :blk try std.fmt.allocPrint(l.arena, "{s}{d}{c} ", .{ pad, number, info.marker });
-            } else try std.fmt.allocPrint(l.arena, "{s} ", .{bullet});
+                const sep = if (box.len > 0) " " else "";
+                break :blk try std.fmt.allocPrint(l.arena, "{s}{d}{c} {s}{s}", .{ pad, number, info.marker, box, sep });
+            } else try std.fmt.allocPrint(l.arena, "{s} ", .{if (box.len > 0) box else bullet});
             try l.push(try l.span(marker, .plain), try l.span(spaces(width.ofString(marker)), .plain));
             if (l.ast.children(item).len == 0) try l.line(&.{}) else try l.children(item, !info.tight);
             l.pop();
@@ -623,6 +632,17 @@ test "loose lists and nested bullets" {
 test "ordered numbers align to the widest" {
     try expectLayout("9. nine\n10. ten", plain, " 9. nine\n10. ten");
     try expectLayout("3) x", plain, "3) x");
+}
+
+test "task items: the box replaces the bullet and follows the number" {
+    try expectLayout("- plain\n- [ ] to do\n- [x] done and wrapped", .{ .width = 12, .styled = false },
+        \\• plain
+        \\☐ to do
+        \\☑ done and
+        \\  wrapped
+    );
+    try expectLayout("1. [x] numbered", plain, "1. ☑ numbered");
+    try expectLayout("- [ ] a b", .{ .width = 6, .styled = false, .ascii = true }, "[ ] a\n    b");
 }
 
 test "list items wrap under their text" {

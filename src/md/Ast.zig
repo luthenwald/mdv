@@ -86,8 +86,9 @@ pub const Node = struct {
     pub const Parent = struct {
         /// Node indices in `extra`.
         children: Range = .{},
-        /// A list's index in `lists`, a heading's level (1 to 6), or a link's
-        /// or image's index in `links`.
+        /// A list's index in `lists`, a heading's level (1 to 6), a link's
+        /// or image's index in `links`, or for a list item 1 when it is an
+        /// open task and 2 when it is a done one.
         index: u32 = 0,
     };
 
@@ -165,6 +166,15 @@ pub fn level(ast: Ast, node: Index) u8 {
 pub fn list(ast: Ast, node: Index) List {
     std.debug.assert(ast.tag(node) == .list);
     return ast.lists[ast.data(node).parent.index];
+}
+
+/// Whether a task item is done, or null for an ordinary list item.
+pub fn task(ast: Ast, node: Index) ?bool {
+    std.debug.assert(ast.tag(node) == .list_item);
+    return switch (ast.data(node).parent.index) {
+        0 => null,
+        else => |i| i == 2,
+    };
 }
 
 pub fn link(ast: Ast, node: Index) Link {

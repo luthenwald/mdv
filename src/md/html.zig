@@ -14,6 +14,8 @@ const Renderer = struct {
     w: *std.Io.Writer,
     /// The last byte written, for `cr`.
     last: u8 = '\n',
+    /// A task item's checkbox, waiting for the item's first paragraph.
+    task: ?bool = null,
 
     fn lit(r: *Renderer, s: []const u8) !void {
         if (s.len == 0) return;
@@ -77,14 +79,19 @@ const Renderer = struct {
             },
             .list_item => {
                 try r.lit("<li>");
+                r.task = ast.task(n);
                 for (ast.children(n)) |child| try r.node(child, tight);
                 try r.lit("</li>");
                 try r.cr();
             },
             .paragraph => {
-                if (tight) return r.inlines(n);
+                if (tight) {
+                    try r.checkbox();
+                    return r.inlines(n);
+                }
                 try r.cr();
                 try r.lit("<p>");
+                try r.checkbox();
                 try r.inlines(n);
                 try r.lit("</p>");
                 try r.cr();
@@ -160,6 +167,13 @@ const Renderer = struct {
         }
     }
 
+    /// As the GFM spec's examples print it.
+    fn checkbox(r: *Renderer) !void {
+        const done = r.task orelse return;
+        r.task = null;
+        try r.lit(if (done) "<input checked=\"\" disabled=\"\" type=\"checkbox\"> " else "<input disabled=\"\" type=\"checkbox\"> ");
+    }
+
     fn inlines(r: *Renderer, n: Ast.Index) std.Io.Writer.Error!void {
         for (r.ast.children(n)) |child| try r.node(child, false);
     }
@@ -221,6 +235,29 @@ fn expectHtml(markdown: []const u8, expected: []const u8) !void {
 test "strikethrough between one or two tildes" {
     try expectHtml("~~Hi~~ Hello, ~there~ ~~~not~~~ ~~a~\n", "<p><del>Hi</del> Hello, <del>there</del> ~~~not~~~ ~~a~</p>\n");
     try expectHtml("This ~~has a\n\nnew paragraph~~.\n", "<p>This ~~has a</p>\n<p>new paragraph~~.</p>\n");
+}
+
+test "task list items" {
+    try expectHtml("- [ ] foo\n- [x] bar\n",
+        \\<ul>
+        \\<li><input disabled="" type="checkbox"> foo</li>
+        \\<li><input checked="" disabled="" type="checkbox"> bar</li>
+        \\</ul>
+        \\
+    );
+    try expectHtml("- [X] a\n\n- [ ] b\n",
+        \\<ul>
+        \\<li>
+        \\<p><input checked="" disabled="" type="checkbox"> a</p>
+        \\</li>
+        \\<li>
+        \\<p><input disabled="" type="checkbox"> b</p>
+        \\</li>
+        \\</ul>
+        \\
+    );
+    // Not tasks: nothing after the marker, another letter, no space.
+    try expectHtml("- [ ]\n- [y] a\n- [x]a\n", "<ul>\n<li>[ ]</li>\n<li>[y] a</li>\n<li>[x]a</li>\n</ul>\n");
 }
 
 test "a tight list in a quote" {

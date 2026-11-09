@@ -49,6 +49,7 @@ pub fn parse(arena: Allocator, source: []const u8, options: Options) Allocator.E
     for (p.nodes.items(.tag), p.nodes.items(.data)) |tag, *data| {
         if (tag == .code_block) data.code.info = try inlines.decode(context, data.code.info);
     }
+    if (options.gfm) try p.taskItems();
     for (p.text_blocks.items) |block| {
         const children = try inlines.parse(context, block.content);
         p.nodes.items(.data)[block.node].parent.children = children;
@@ -639,6 +640,35 @@ const Parser = struct {
             }
         }
         return true;
+    }
+
+    /// Turns list items whose first paragraph starts with `[ ]`, `[x]` or
+    /// `[X]` and whitespace into task items, the marker cut from the content.
+    fn taskItems(p: *Parser) !void {
+        // Which text block holds each paragraph.
+        const block_of = try p.arena.alloc(u32, p.nodes.len);
+        @memset(block_of, std.math.maxInt(u32));
+        for (p.text_blocks.items, 0..) |b, i| block_of[b.node] = @intCast(i);
+        const tags = p.nodes.items(.tag);
+        const data = p.nodes.items(.data);
+        for (tags, data) |tag, *item| {
+            if (tag != .list_item) continue;
+            const kids = item.parent.children.of(Index, p.extra.items);
+            if (kids.len == 0 or tags[kids[0]] != .paragraph) continue;
+            const content = &p.text_blocks.items[block_of[kids[0]]].content;
+            const s = content.of(u8, p.text.items);
+            if (s.len < 4 or s[0] != '[' or s[2] != ']' or !scan.isWhitespace(s[3])) continue;
+            const done = switch (s[1]) {
+                ' ', '\t' => false,
+                'x', 'X' => true,
+                else => continue,
+            };
+            var skip: u32 = 4;
+            while (skip < s.len and scan.isWhitespace(s[skip])) skip += 1;
+            content.start += skip;
+            content.len -= skip;
+            item.parent.index = if (done) 2 else 1;
+        }
     }
 
     /// Takes link reference definitions from the start of a paragraph's
