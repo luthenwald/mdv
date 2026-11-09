@@ -17,6 +17,8 @@ pub fn build(b: *std.Build) void {
         .root_source_file = b.path("src/main.zig"),
         .target = target,
         .optimize = optimize,
+        // A release binary carries no symbols.
+        .strip = optimize != .debug,
     });
 
     const options = b.addOptions();
@@ -34,6 +36,8 @@ pub fn build(b: *std.Build) void {
         .root_module = mod,
     });
     b.installArtifact(exe);
+    b.installFile("manual.md", "share/doc/mdv/manual.md");
+    b.installFile("notices.md", "share/doc/mdv/notices.md");
 
     const run = b.addRunArtifact(exe);
     run.step.dependOn(b.getInstallStep());
@@ -61,8 +65,8 @@ pub fn build(b: *std.Build) void {
         .root_module = b.createModule(.{
             .root_source_file = b.path("test/pathological.zig"),
             .target = target,
-            .optimize = .ReleaseFast,
-            .imports = &.{.{ .name = "md", .module = mdModule(b, target, .ReleaseFast, tables) }},
+            .optimize = .fast,
+            .imports = &.{.{ .name = "md", .module = mdModule(b, target, .fast, tables) }},
         }),
     });
     const pathological_run = b.addRunArtifact(pathological);

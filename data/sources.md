@@ -22,4 +22,4 @@ The named character references of HTML, 2,231 names.
 - `CaseFolding.txt`, from https://www.unicode.org/Public/17.0.0/ucd/CaseFolding.txt (fetched 2026-11-08)
   sha256: `ff8d8fefbf123574205085d6714c36149eb946d717a0c585c27f0f4ef58c4183`
 
-Copyright © 2025 Unicode, Inc. Distributed under the Unicode License v3, whose copyright and permission notice is in `unicode-license.txt` (from https://www.unicode.org/license.txt).
+Copyright © 1991-2026 Unicode, Inc. Distributed under the Unicode License v3, whose copyright and permission notice is in `unicode-license.txt` (from https://www.unicode.org/license.txt).

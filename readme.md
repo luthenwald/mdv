@@ -20,4 +20,6 @@ The [manual](manual.md) describes every option, how each element looks, and what
 
 ## Building
 
-You need a development build of Zig 0.18 and `just`. `just build` makes a debug binary in `zig-out/bin/mdv`, `just release` an optimized one, `just test` runs the tests, `just run FILE` runs it from the source tree, and `just install` installs the release binary under `~/.local` (or `just install prefix=/usr/local`).
+You need Zig 0.18.0-dev.861+1a0778dc2 (a development build; later ones may need small changes) and `just`. `just build` makes a debug binary in `zig-out/bin/mdv`, `just release` an optimized one, `just test` runs the tests, `just run FILE` runs it from the source tree, and `just install` installs the release binary and the manual under `~/.local` (or `just install prefix=/usr/local`).
+
+mdv is under the MIT License. It carries a port of commonmark.js and tables generated from Unicode and WHATWG data; their terms are in [notices.md](notices.md).
